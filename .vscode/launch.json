@@ -1,0 +1,17 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type" : "cppdbg",
+      "request": "launch",
+      "name" : "Launch nn_example_test",
+      "cwd": "${workspaceFolder}",
+      "program":"${workspaceRoot}/build/test/nn_example_test",
+      // "args": ["--gtest_filter=TensorHelperTest.*"],
+      "MIMode": "lldb",
+    }
+  ]
+}

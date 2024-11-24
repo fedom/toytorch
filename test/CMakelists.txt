@@ -1,0 +1,27 @@
+set(TEST_SRC unit/nn/tensor/tensor.cpp
+             unit/nn/tensor/tensor_operations.cpp
+             unit/nn/tensor/tensor_helper.cpp
+             unit/nn/modules/activation.cpp
+             unit/nn/modules/linear.cpp
+             unit/nn/modules/module.cpp
+             unit/nn/optim/sgd.cpp
+             unit/nn/autograd/autograd.cpp
+             unit/nn/autograd/backward_node_binary_op.cpp
+             unit/nn/autograd/backward_node_unary_op.cpp
+             unit/nn/autograd/backward_node_activation_op.cpp
+             system/module/network.cpp
+
+             )
+
+set(TEST_TARGET_NAME ${PROJECT_NAME}_test)
+
+add_executable(${TEST_TARGET_NAME} ${TEST_SRC})
+
+target_include_directories(${TEST_TARGET_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${TEST_TARGET_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${TEST_TARGET_NAME} nn_engine)
+
+find_package(GTest REQUIRED)
+target_link_libraries(${TEST_TARGET_NAME} ${GTEST_MAIN_LIBRARIES})
+
+add_test(${TEST_TARGET_NAME} ${TEST_TARGET_NAME})

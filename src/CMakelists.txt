@@ -1,0 +1,34 @@
+
+set(SRC
+        ./nn/tensor/tensor.cpp
+        ./nn/tensor/tensor_impl.cpp
+        ./nn/tensor/tensor_helper.cpp
+        ./nn/tensor/tensor_operations.cpp
+        ./nn/tensor/tensor_creator.cpp
+        ./nn/modules/linear.cpp
+        ./nn/modules/activation.cpp
+        ./nn/modules/module.cpp
+        ./nn/modules/activation_registry.cpp
+        ./nn/optim/sgd.cpp
+        ./nn/autograd/autograd.cpp
+        ./nn/autograd/node.cpp
+        ./nn/autograd/autograd_utils.cpp
+        ./nn/autograd/backward_node_unary_op.cpp
+        ./nn/autograd/backward_node_unimplement_op.cpp
+        ./nn/autograd/backward_node_binary_op.cpp
+        ./nn/autograd/backward_node_leaf_op.cpp
+        ./nn/autograd/backward_node_activation_op.cpp
+        ./nn/debug/backward_graph_builder.cpp
+        ./nn/debug/debug_utils.cpp
+        )
+
+set(NN_LIB_NAME nn_engine)
+add_library(${NN_LIB_NAME} ${SRC})
+
+target_include_directories(${NN_LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${NN_LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+
+set(LINEAR_REGRESSION_EXAMPLE linear_regression)
+add_executable(${LINEAR_REGRESSION_EXAMPLE} ./linear_regression_example.cpp)
+target_link_libraries(${LINEAR_REGRESSION_EXAMPLE} nn_engine)
