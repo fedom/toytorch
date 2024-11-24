@@ -51,6 +51,8 @@ Two binaries will be created:
 Run them to check the results.
 
 ## **Example**
+- [linear regression example](./src/linear_regression_example.cpp)
+- Backward graph printing example
 
 ```c++
 #include "toytorch.h"
