@@ -46,7 +46,7 @@ cmake --build build
 Two binaries will be created:
 ```
 ./build/src/linear_regression  // linear regression example provided by pytorch implemented using our toy
-./build/test/nn_example_test   // unittests if you have built it
+./build/test/toytorch_test   // unittests if you have built it
 ```
 Run them to check the results.
 
