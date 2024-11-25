@@ -136,6 +136,8 @@ class Tensor {
   void print() const { impl_->print(); }
   void print_shape() const {impl_->print_shape();}
 
+  uintptr_t identity() const {return reinterpret_cast<uintptr_t>(impl_.get());}
+
  private:
 
   std::shared_ptr<TensorImpl> impl_;

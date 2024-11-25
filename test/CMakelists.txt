@@ -4,6 +4,7 @@ set(TEST_SRC unit/nn/tensor/tensor.cpp
              unit/nn/modules/activation.cpp
              unit/nn/modules/linear.cpp
              unit/nn/modules/module.cpp
+             unit/nn/debug/debug_utils.cpp
              unit/nn/optim/sgd.cpp
              unit/nn/autograd/autograd.cpp
              unit/nn/autograd/backward_node_binary_op.cpp
@@ -23,5 +24,4 @@ target_link_libraries(${TEST_TARGET_NAME} nn_engine)
 
 find_package(GTest REQUIRED)
 target_link_libraries(${TEST_TARGET_NAME} ${GTEST_MAIN_LIBRARIES})
-
 add_test(${TEST_TARGET_NAME} ${TEST_TARGET_NAME})

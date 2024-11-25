@@ -8,22 +8,46 @@ namespace toytorch::debug {
 using autograd::Edge;
 using autograd::Node;
 
-std::string get_edge_label(const Tensor& tensor) {
+namespace {
+
+std::string get_tensor_node_style() {
+  return "node [shape=circle style=filled fillcolor=aquamarine fontcolor=black fontsize=20]";
+}
+
+std::string get_backward_op_node_style() {
+  return "node [shape=box style=filled fillcolor=cyan1 fontcolor=black fontsize=20]";
+}
+
+std::string get_tensor_shape(const Tensor& tensor) {
   std::ostringstream oss;
 
-  oss << "[label=\"" << tensor.name() << "(";
+  oss << "(";
   std::string delim = "";
   for (int n : tensor.shape()) {
     oss << delim << n;
     delim = ",";
   }
-  oss << ")\"";
-  if (tensor.requires_grad()) {
-    oss << "color=\"red\"";
-  }
+  oss << ")";
+  return oss.str();
+}
 
+// Copies share the same underlying object have the same identity
+std::string get_tensor_node_id(const Tensor& tensor) {
+  std::ostringstream oss;
+  oss << "tensor_" << tensor.identity();
+  return oss.str();
+}
+
+std::string get_tensor_node_desc(const Tensor& tensor) {
+  std::ostringstream oss;
+  oss << "[";
+  oss << "label=\"" << get_tensor_shape(tensor) << "\"";
+  if (!tensor.requires_grad()) {
+    oss << "fillcolor=azure";
+  }
   oss << "]";
   return oss.str();
+}
 }
 
 std::string BackwardGraphBuilder::print_backward_graph(const Tensor& tensor) {
@@ -31,17 +55,19 @@ std::string BackwardGraphBuilder::print_backward_graph(const Tensor& tensor) {
     return "";
   }
 
-  const std::string header = "digraph G {";
-  const std::string tail = "}";
+  tensor_nodes_.insert({get_tensor_node_id(tensor), get_tensor_node_desc(tensor)});
+  handle_tensor(tensor);
 
   std::ostringstream oss;
+  oss << "digraph G {\n";
 
-  oss << header << "\n";
-  oss << "start [style=\"invis\"]\n";
+  oss << get_tensor_node_style() << "\n";
+  for (auto& [id, desc] : tensor_nodes_) {
+    oss << id << " " << desc << "\n";
+  }
 
-  handle_tensor(tensor, "start");
-
-  for (auto& str : nodes_) {
+  oss << get_backward_op_node_style() << "\n";
+  for (auto& str : backward_op_nodes_) {
     oss << str << "\n";
   }
 
@@ -49,39 +75,32 @@ std::string BackwardGraphBuilder::print_backward_graph(const Tensor& tensor) {
     oss << edge << "\n";
   }
 
-  oss << tail << "\n";
+  oss << "}\n";
   return oss.str();
 }
 
-std::string BackwardGraphBuilder::gen_input_node(const Tensor &tensor) {
-  return std::string("input_") + std::to_string(reinterpret_cast<uintptr_t>(tensor.raw_data()));
-}
+void BackwardGraphBuilder::handle_tensor(const Tensor& tensor) {
+  std::string tensor_node_id = get_tensor_node_id(tensor);
 
-void BackwardGraphBuilder::handle_tensor(const Tensor& tensor,
-                                         const std::string& src_node_id) {
-  std::shared_ptr<Node> node = tensor.grad_info()->grad_fn;
-  std::string target_node_id = node->id();
+  std::shared_ptr<Node> backward_op_node = tensor.grad_info()->grad_fn;
+  std::string backward_op_node_id = backward_op_node->id();
 
-  edges_.push_back(src_node_id + " -> " + target_node_id + " " +
-                   get_edge_label(tensor));
+  edges_.push_back(tensor_node_id + " -> " + backward_op_node_id);
+  backward_op_nodes_.insert(backward_op_node_id);
 
-  if (nodes_.find(target_node_id) != nodes_.end()) {
-    return;
-  }
+  for (auto& edge : backward_op_node->get_edges()) {
+    // There will be only one edge comes out from each tensor, while there can be multiples edges
+    // come out from one backward_op_node.
+    std::string target_tensor_node_id = get_tensor_node_id(edge.get_tensor());
+    edges_.push_back(backward_op_node_id + " -> " + target_tensor_node_id);
 
-  nodes_.insert(target_node_id);
+    if (tensor_nodes_.find(target_tensor_node_id) != tensor_nodes_.end()) {
+      continue;
+    }
+    tensor_nodes_.insert({target_tensor_node_id, get_tensor_node_desc(edge.get_tensor())});
 
-  for (auto& edge : node->get_edges()) {
     if (edge.get_tensor().requires_grad()) {
-      handle_tensor(edge.get_tensor(), target_node_id);
-    } else {
-      // For input tensor that requires_grad = false, we should display it in the graph
-      // though we don't need to recursively handle it.
-
-      std::string input_node = gen_input_node(edge.get_tensor());
-      nodes_.insert(input_node + " [style=\"invis\"]");
-      edges_.push_back(target_node_id + " -> " + input_node + " " +
-                   get_edge_label(edge.get_tensor()));
+      handle_tensor(edge.get_tensor());
     }
   }
 }

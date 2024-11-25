@@ -57,16 +57,19 @@ Run them to check the results.
 ```c++
 #include "toytorch.h"
 
+using namespace toytorch;
 int main() {
   Linear fc1(4, 32, "Sigmoid", "fc1");
   Linear fc2(32, 8, "Relu", "fc2");
-  Linear fc3(8, 1, "Sigmoid", "fc3");
+  Tensor custom_param = randn({4, 8}, true);
 
   Tensor input = rand({5, 4});
-  Tensor result = fc1.forward(input);
-  result = fc2.forward(result);
-  result = fc3.forward(result);
-  result = result.sum();
+
+  Tensor output1 = fc1.forward(input);  // (5, 32)
+  output1 = fc2.forward(output1);       // (5, 8)
+
+  Tensor output2 = matmul(input, custom_param); // (5, 8)
+  Tensor result = (output1 * output2).sum();
 
   std::cout << debug::print_backward_graph(result) << std::endl;
   result.backward();
@@ -76,8 +79,7 @@ int main() {
   fc1.bias().grad()->print();
   fc2.weights().grad()->print();
   fc2.bias().grad()->print();
-  fc3.weights().grad()->print();
-  fc3.bias().grad()->print();
+  custom_param.grad()->print();
 
   return 0;
 }
