@@ -88,7 +88,8 @@ int main() {
 }
 ```
 Here's the backward graph printed.
-![backward graph](docs/images/backward.svg)
+<img src="docs/images/backward.svg" width="600" height="1100" />
+
 
 ## **What to do next**
 
