@@ -1,12 +1,12 @@
 #include "nn/tensor/tensor.h"
+#include "nn/exceptions/exceptions.h"
+#include "nn/autograd/autograd.h"
+#include "nn/autograd/backward_node_unary_op.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/tensor_helper.h"
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include "exception/exceptions.h"
-#include "nn/autograd/autograd.h"
-#include "nn/autograd/backward_node_unary_op.h"
-#include "nn/tensor/tensor_operations.h"
-#include "tensor_helper.h"
 
 namespace toytorch {
 
@@ -17,6 +17,10 @@ Tensor Tensor::squeeze(int dim) const {
 }
 Tensor Tensor::unsqueeze(int dim) const {
   return toytorch::unsqueeze(*this, dim);
+}
+
+Tensor Tensor::unfold(int dim, int size, int step) const {
+  return toytorch::unfold(*this, dim, size, step);
 }
 
 Tensor Tensor::view(const TensorShape& new_shape) const {

@@ -1,8 +1,9 @@
 #include "nn/modules/linear.h"
+#include "nn/exceptions/exceptions.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/matrix.h"
 #include <iostream>
 #include <memory>
-#include "exception/exceptions.h"
-#include "nn/tensor/tensor_operations.h"
 
 namespace toytorch {
 

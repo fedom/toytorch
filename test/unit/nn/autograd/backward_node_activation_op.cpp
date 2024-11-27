@@ -4,7 +4,7 @@
 #include "nn/modules/activation.h"
 #include "nn/tensor/tensor.h"
 #include "nn/tensor/tensor_creator.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
 
 using namespace toytorch;
 

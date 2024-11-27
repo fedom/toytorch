@@ -1,8 +1,11 @@
-#include "nn/tensor/tensor_operations.h"
-#include <gtest/gtest.h>
-#include "exception/exceptions.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/losses.h"
+#include "nn/exceptions/exceptions.h"
 #include "nn/tensor/tensor.h"
 #include "nn/tensor/tensor_creator.h"
+#include "nn/utils/print_utils.h"
+#include "nn/operations/common_types.h"
+#include <gtest/gtest.h>
 
 using namespace toytorch;
 
@@ -29,25 +32,6 @@ TEST(TensorOperationsTest, ArithmeticOperandUnchangedAfterBroadcast) {
   EXPECT_TRUE(t2 == Tensor({3, 2}, {1, 2, 3, 4, 5, 6}));
 }
 
-TEST(TensorOperationsTest, Matmul_mDmD_TransposedRandomValueResult) {
-  // calculated with numpy
-  Tensor t1({2, 3, 3, 2}, {14, 29, 20, 12, 9,  19, 26, 23, 16, 25, 28, 20,
-                           14, 8,  19, 2,  25, 21, 13, 27, 28, 29, 22, 11,
-                           24, 10, 29, 14, 2,  28, 13, 4,  18, 17, 3,  3});
-  Tensor t2({3, 2, 4}, {4, 25, 4,  3,  3, 3,  26, 18, 8,  19, 29, 13,
-                        6, 24, 18, 28, 2, 27, 5,  20, 21, 21, 21, 18});
-  Tensor expect_result =
-      Tensor({2, 3, 3, 4},
-             {143, 437,  810,  564, 116, 536, 392,  276, 93,  282,  530,  369,
-              346, 1046, 1168, 982, 278, 904, 914,  908, 344, 1012, 1172, 924,
-              196, 546,  238,  424, 80,  555, 137,  416, 491, 1116, 566,  878,
-              133, 406,  754,  525, 199, 787, 866,  606, 121, 583,  374,  264,
-              252, 696,  876,  592, 316, 887, 1093, 769, 184, 710,  562,  810,
-              110, 435,  149,  332, 393, 843, 447,  666, 69,  144,  78,   114});
-
-  EXPECT_TRUE(matmul(t2.transpose(1, 2), t1.transpose(2, 3)) ==
-              expect_result.transpose(2, 3));
-}
 
 TEST(TensorOperationsTest, ElementwiseUnaryOpExp) {
   Tensor t({2, 3}, {1, 1, 1, 1, 1, 1});
@@ -137,156 +121,6 @@ TEST(TensorTest, ElementwiseWithScalarAsOp2) {
   EXPECT_TRUE((t1 - t2) == t_sub);
   EXPECT_TRUE((t1 * t2) == t_mul);
   EXPECT_TRUE((t1 / t2) == t_div);
-}
-
-TEST(TensorOperationsTest, Matmul_1D1D_Compatible) {
-  Tensor t1({3}, {2, 2, 2});
-  Tensor t2({3}, {3, 3, 3});
-
-  Tensor result(18);
-
-  EXPECT_TRUE(matmul(t1, t2) == result);
-}
-
-TEST(TensorOperationsTest, Matmul_1D1D_Incompatible) {
-  Tensor t1({3}, {2, 2, 2});
-  Tensor t2({2}, {3, 2});
-
-  EXPECT_THROW(matmul(t1, t2), ExceptionInvalidArgument);
-}
-
-TEST(TensorOperationsTest, Matmul_1D2D_Compatible) {
-  Tensor t1({3}, {2, 2, 2});
-  Tensor t2({3, 1}, {3, 3, 3});
-
-  Tensor t0({1}, 18);
-
-  Tensor result = matmul(t1, t2);
-  EXPECT_TRUE(result.shape() == TensorShape({1}));
-  EXPECT_TRUE(result[0] == 18);
-  EXPECT_TRUE(result == t0);
-}
-
-TEST(TensorOperationsTest, Matmul_1D2D_Incompatible) {
-  Tensor t1({3}, {2, 2, 2});
-  Tensor t2({2, 1}, {3, 2});
-
-  EXPECT_THROW(matmul(t1, t2), ExceptionInvalidArgument);
-}
-
-TEST(TensorOperationsTest, Matmul_2D1D_Compatible) {
-  Tensor t1({3}, {2, 2, 2});
-  Tensor t2({1, 3}, {3, 3, 3});
-
-  Tensor t0({1}, 18);
-
-  Tensor result = matmul(t2, t1);
-  EXPECT_TRUE(result.shape() == TensorShape({1}));
-  EXPECT_TRUE(result[0] == 18);
-  EXPECT_TRUE(result == t0);
-}
-
-TEST(TensorOperationsTest, Matmul_2D1D_Incompatible) {
-  Tensor t1({3}, {2, 2, 2});
-  Tensor t2({2, 1}, {3, 2});
-
-  EXPECT_THROW(matmul(t2, t1), ExceptionInvalidArgument);
-}
-
-TEST(TensorOperationsTest, Matmul_2D2D_Compatible) {
-  Tensor t1({3, 2}, {4, 13, 29, 29, 20, 28});
-  Tensor t2({2, 4}, {26, 14, 25, 18, 28, 28, 18, 17});
-
-  Tensor expected_result = Tensor({3, 4}, {468, 420, 334, 293, 1566, 1218, 1247,
-                                           1015, 1304, 1064, 1004, 836});
-
-  EXPECT_TRUE(matmul(t1, t2) == expected_result);
-}
-
-TEST(TensorOperationsTest, Matmul_2D2D_Incompatible) {
-  Tensor t1({3, 2}, {2, 2, 2, 2, 2, 2});
-  Tensor t2({3, 2}, {3, 3, 3, 3, 3, 3});
-
-  EXPECT_THROW(matmul(t1, t2), ExceptionInvalidArgument);
-}
-
-TEST(TensorOperationsTest, Matmul_3D2D_Compatible) {
-
-  Tensor t1({2, 3, 2}, {12, 25, 16, 9, 16, 27, 18, 14, 24, 10, 23, 28});
-  Tensor t2({1, 2, 4}, {28, 24, 6, 24, 17, 10, 7, 28});
-
-  Tensor expected_result =
-      Tensor({2, 3, 4},
-             {761, 538, 247, 988, 601, 474, 159, 636, 907,  654, 285, 1140,
-              742, 572, 206, 824, 842, 676, 214, 856, 1120, 832, 334, 1336});
-
-  EXPECT_TRUE(matmul(t1, t2) == expected_result);
-}
-
-TEST(TensorOperationsTest, Matmul_3D2D_ShapeIncompatible) {
-
-  Tensor t1({2, 3, 2});
-  Tensor t2({1, 3, 4});
-
-  EXPECT_THROW(matmul(t1, t2), ExceptionTensorShapeIncompatible);
-}
-
-TEST(TensorOperationsTest, Matmul_3D2D_BatchIncompatible) {
-
-  Tensor t1({2, 3, 2});
-  Tensor t2({3, 2, 4});
-
-  EXPECT_THROW(matmul(t1, t2), ExceptionTensorShapeIncompatible);
-}
-
-TEST(TensorOperationsTest, Matmul_mDmD_BatchCompatible) {
-
-  Tensor t1({2, 3, 3, 2}, std::vector<float>(36, 8));
-  Tensor t2({3, 2, 4}, std::vector<float>(24, 5));
-
-  Tensor t3 = matmul(t1, t2);
-  EXPECT_TRUE(t3 == Tensor({2, 3, 3, 4}, std::vector<float>(72, 80)));
-}
-
-TEST(TensorOperationsTest, Matmul_mDmD_RandomValueResult) {
-  // calculated with numpy
-  Tensor t1({2, 3, 3, 2}, {14, 29, 20, 12, 9,  19, 26, 23, 16, 25, 28, 20,
-                           14, 8,  19, 2,  25, 21, 13, 27, 28, 29, 22, 11,
-                           24, 10, 29, 14, 2,  28, 13, 4,  18, 17, 3,  3});
-  Tensor t2({3, 2, 4}, {4, 25, 4,  3,  3, 3,  26, 18, 8,  19, 29, 13,
-                        6, 24, 18, 28, 2, 27, 5,  20, 21, 21, 21, 18});
-  Tensor expect_result =
-      Tensor({2, 3, 3, 4},
-             {143, 437,  810,  564, 116, 536, 392,  276, 93,  282,  530,  369,
-              346, 1046, 1168, 982, 278, 904, 914,  908, 344, 1012, 1172, 924,
-              196, 546,  238,  424, 80,  555, 137,  416, 491, 1116, 566,  878,
-              133, 406,  754,  525, 199, 787, 866,  606, 121, 583,  374,  264,
-              252, 696,  876,  592, 316, 887, 1093, 769, 184, 710,  562,  810,
-              110, 435,  149,  332, 393, 843, 447,  666, 69,  144,  78,   114});
-
-  EXPECT_TRUE(matmul(t1, t2) == expect_result);
-}
-
-TEST(TensorOperationsTest, Matmul_2D2D_DiffLayoutTransposedMatmul) {
-
-  Tensor t1({2, 3}, {4, 13, 29, 29, 20, 28});
-  Tensor t1_t({3, 2}, {4, 29, 13, 20, 29, 28});
-
-  Tensor t2({2, 4}, {26, 14, 25, 18, 28, 28, 18, 17});
-
-  EXPECT_TRUE(matmul(t1.transpose(), t2) == matmul(t1_t, t2));
-}
-
-TEST(TensorOperationsTest, Matmul_2D2D_TransposedRandomValueResult) {
-
-  Tensor t1({3, 2}, {4, 13, 29, 29, 20, 28});
-  Tensor t2({2, 4}, {26, 14, 25, 18, 28, 28, 18, 17});
-
-  Tensor expected_result = Tensor({3, 4}, {468, 420, 334, 293, 1566, 1218, 1247,
-                                           1015, 1304, 1064, 1004, 836});
-
-  EXPECT_TRUE(matmul(t2.transpose(), t1.transpose()) ==
-              expected_result.transpose());
 }
 
 TEST(TensorOperationsTest, GtNoBroadcast) {
@@ -449,33 +283,172 @@ TEST(TensorOperationsTest, unsqueeze) {
   EXPECT_THROW(unsqueeze(t2, 0), ExceptionOpBackwardNotImplemented);
 }
 
-TEST(TensorOperationsTest, SmoothL1LossNone) {
-  Tensor t1 = Tensor({2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
-  Tensor t2 = Tensor({2, 2, 2}, {1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5});
+TEST(TensorOperationsTest, unfoldNoOverlap) {
+  Tensor t1 = arange(0, 2 * 3 * 4 * 6).view({2, 3, 4, 6});
+  ASSERT_TRUE(t1.shape() == TensorShape({2, 3, 4, 6}));
+  ASSERT_TRUE(t1.strides() == TensorShape({72, 24, 6, 1}));
 
-  Tensor loss = smooth_l1_loss(t1, t2, ReductionType::None);
+  int kernel_h = 2;
+  int kernel_w = 2;
+  int stride = 2;
 
-  // loss.print();
-  EXPECT_TRUE(loss == Tensor({2, 2, 2}, {0.1250, 0.1250, 0.1250, 0.1250, 0.1250,
-                                         0.1250, 0.1250, 0.1250}));
+  Tensor t2 = t1.unfold(2, kernel_h, stride);
+  // std::cout << t2.shape();
+  // std::cout << t2.strides();
+
+  EXPECT_TRUE(t2.shape() == TensorShape({2, 3, 2, 6, 2}));
+  EXPECT_TRUE(t2.strides() == TensorShape({72, 24, 12, 1, 6}));
+
+  Tensor t3 = t2.unfold(3, kernel_w, stride);
+  EXPECT_TRUE(t3.shape() == TensorShape({2, 3, 2, 3, 2, 2}));
+  EXPECT_TRUE(t3.strides() == TensorShape({72, 24, 12, 2, 6, 1}));
+
+  EXPECT_TRUE(
+      t3 ==
+      Tensor(
+          {2, 3, 2, 3, 2, 2},
+          {0,   1,   6,   7,   2,   3,   8,   9,   4,   5,   10,  11,  12,  13,
+           18,  19,  14,  15,  20,  21,  16,  17,  22,  23,  24,  25,  30,  31,
+           26,  27,  32,  33,  28,  29,  34,  35,  36,  37,  42,  43,  38,  39,
+           44,  45,  40,  41,  46,  47,  48,  49,  54,  55,  50,  51,  56,  57,
+           52,  53,  58,  59,  60,  61,  66,  67,  62,  63,  68,  69,  64,  65,
+           70,  71,  72,  73,  78,  79,  74,  75,  80,  81,  76,  77,  82,  83,
+           84,  85,  90,  91,  86,  87,  92,  93,  88,  89,  94,  95,  96,  97,
+           102, 103, 98,  99,  104, 105, 100, 101, 106, 107, 108, 109, 114, 115,
+           110, 111, 116, 117, 112, 113, 118, 119, 120, 121, 126, 127, 122, 123,
+           128, 129, 124, 125, 130, 131, 132, 133, 138, 139, 134, 135, 140, 141,
+           136, 137, 142, 143}));
 }
 
-TEST(TensorOperationsTest, SmoothL1LossSum) {
-  Tensor t1 = Tensor({2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
-  Tensor t2 = Tensor({2, 2, 2}, {1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5});
+TEST(TensorOperationsTest, unfoldOverlap) {
+  Tensor t1 = arange(0, 2 * 3 * 4 * 6).view({2, 3, 4, 6});
+  ASSERT_TRUE(t1.shape() == TensorShape({2, 3, 4, 6}));
+  ASSERT_TRUE(t1.strides() == TensorShape({72, 24, 6, 1}));
 
-  Tensor loss = smooth_l1_loss(t1, t2, ReductionType::Sum);
+  int kernel_h = 2;
+  int kernel_w = 2;
+  int stride = 1;
 
-  // loss.print();
-  EXPECT_TRUE(loss == Tensor(1));
+  Tensor t2 = t1.unfold(2, kernel_h, stride);
+  // std::cout << t2.shape();
+  // std::cout << t2.strides();
+
+  EXPECT_TRUE(t2.shape() == TensorShape({2, 3, 3, 6, 2}));
+  EXPECT_TRUE(t2.strides() == TensorShape({72, 24, 6, 1, 6}));
+
+  Tensor t3 = t2.unfold(3, kernel_w, stride);
+  EXPECT_TRUE(t3.shape() == TensorShape({2, 3, 3, 5, 2, 2}));
+  EXPECT_TRUE(t3.strides() == TensorShape({72, 24, 6, 1, 6, 1}));
+
+  EXPECT_TRUE(
+      t3 ==
+      Tensor(
+          {2, 3, 3, 5, 2, 2},
+          {0,   1,   6,   7,   1,   2,   7,   8,   2,   3,   8,   9,   3,   4,
+           9,   10,  4,   5,   10,  11,  6,   7,   12,  13,  7,   8,   13,  14,
+           8,   9,   14,  15,  9,   10,  15,  16,  10,  11,  16,  17,  12,  13,
+           18,  19,  13,  14,  19,  20,  14,  15,  20,  21,  15,  16,  21,  22,
+           16,  17,  22,  23,  24,  25,  30,  31,  25,  26,  31,  32,  26,  27,
+           32,  33,  27,  28,  33,  34,  28,  29,  34,  35,  30,  31,  36,  37,
+           31,  32,  37,  38,  32,  33,  38,  39,  33,  34,  39,  40,  34,  35,
+           40,  41,  36,  37,  42,  43,  37,  38,  43,  44,  38,  39,  44,  45,
+           39,  40,  45,  46,  40,  41,  46,  47,  48,  49,  54,  55,  49,  50,
+           55,  56,  50,  51,  56,  57,  51,  52,  57,  58,  52,  53,  58,  59,
+           54,  55,  60,  61,  55,  56,  61,  62,  56,  57,  62,  63,  57,  58,
+           63,  64,  58,  59,  64,  65,  60,  61,  66,  67,  61,  62,  67,  68,
+           62,  63,  68,  69,  63,  64,  69,  70,  64,  65,  70,  71,  72,  73,
+           78,  79,  73,  74,  79,  80,  74,  75,  80,  81,  75,  76,  81,  82,
+           76,  77,  82,  83,  78,  79,  84,  85,  79,  80,  85,  86,  80,  81,
+           86,  87,  81,  82,  87,  88,  82,  83,  88,  89,  84,  85,  90,  91,
+           85,  86,  91,  92,  86,  87,  92,  93,  87,  88,  93,  94,  88,  89,
+           94,  95,  96,  97,  102, 103, 97,  98,  103, 104, 98,  99,  104, 105,
+           99,  100, 105, 106, 100, 101, 106, 107, 102, 103, 108, 109, 103, 104,
+           109, 110, 104, 105, 110, 111, 105, 106, 111, 112, 106, 107, 112, 113,
+           108, 109, 114, 115, 109, 110, 115, 116, 110, 111, 116, 117, 111, 112,
+           117, 118, 112, 113, 118, 119, 120, 121, 126, 127, 121, 122, 127, 128,
+           122, 123, 128, 129, 123, 124, 129, 130, 124, 125, 130, 131, 126, 127,
+           132, 133, 127, 128, 133, 134, 128, 129, 134, 135, 129, 130, 135, 136,
+           130, 131, 136, 137, 132, 133, 138, 139, 133, 134, 139, 140, 134, 135,
+           140, 141, 135, 136, 141, 142, 136, 137, 142, 143}));
 }
 
-TEST(TensorOperationsTest, SmoothL1LossMean) {
-  Tensor t1 = Tensor({2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
-  Tensor t2 = Tensor({2, 2, 2}, {1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5});
+TEST(TensorOperationsTest, unfoldNotAlign) {
+  Tensor t1 = arange(0, 2 * 3 * 5 * 7).view({2, 3, 5, 7});
 
-  Tensor loss = smooth_l1_loss(t1, t2, ReductionType::Mean);
+  ASSERT_TRUE(t1.shape() == TensorShape({2, 3, 5, 7}));
+  ASSERT_TRUE(t1.strides() == TensorShape({105, 35, 7, 1}));
 
-  // loss.print();
-  EXPECT_TRUE(loss == Tensor(0.125));
+  int kernel_h = 2;
+  int kernel_w = 3;
+  int stride = 2;
+
+  Tensor t2 = t1.unfold(2, kernel_h, stride);
+  // std::cout << t2.shape();
+  // std::cout << t2.strides();
+
+  EXPECT_TRUE(t2.shape() == TensorShape({2, 3, 2, 7, 2}));
+  EXPECT_TRUE(t2.strides() == TensorShape({105, 35, 14, 1, 7}));
+
+  Tensor t3 = t2.unfold(3, kernel_w, stride);
+  EXPECT_TRUE(t3.shape() == TensorShape({2, 3, 2, 3, 2, 3}));
+  EXPECT_TRUE(t3.strides() == TensorShape({105, 35, 14, 2, 7, 1}));
+
+  EXPECT_TRUE(
+      t3 ==
+      Tensor(
+          {2, 3, 2, 3, 2, 3},
+          {0,   1,   2,   7,   8,   9,   2,   3,   4,   9,   10,  11,  4,   5,
+           6,   11,  12,  13,  14,  15,  16,  21,  22,  23,  16,  17,  18,  23,
+           24,  25,  18,  19,  20,  25,  26,  27,  35,  36,  37,  42,  43,  44,
+           37,  38,  39,  44,  45,  46,  39,  40,  41,  46,  47,  48,  49,  50,
+           51,  56,  57,  58,  51,  52,  53,  58,  59,  60,  53,  54,  55,  60,
+           61,  62,  70,  71,  72,  77,  78,  79,  72,  73,  74,  79,  80,  81,
+           74,  75,  76,  81,  82,  83,  84,  85,  86,  91,  92,  93,  86,  87,
+           88,  93,  94,  95,  88,  89,  90,  95,  96,  97,  105, 106, 107, 112,
+           113, 114, 107, 108, 109, 114, 115, 116, 109, 110, 111, 116, 117, 118,
+           119, 120, 121, 126, 127, 128, 121, 122, 123, 128, 129, 130, 123, 124,
+           125, 130, 131, 132, 140, 141, 142, 147, 148, 149, 142, 143, 144, 149,
+           150, 151, 144, 145, 146, 151, 152, 153, 154, 155, 156, 161, 162, 163,
+           156, 157, 158, 163, 164, 165, 158, 159, 160, 165, 166, 167, 175, 176,
+           177, 182, 183, 184, 177, 178, 179, 184, 185, 186, 179, 180, 181, 186,
+           187, 188, 189, 190, 191, 196, 197, 198, 191, 192, 193, 198, 199, 200,
+           193, 194, 195, 200, 201, 202}));
 }
+
+TEST(TensorOperationsTest, unfold) {
+  Tensor t1 = arange(0, 2 * 3 * 4 * 6).view({2, 3, 4, 6});
+  ASSERT_TRUE(t1.shape() == TensorShape({2, 3, 4, 6}));
+  ASSERT_TRUE(t1.strides() == TensorShape({72, 24, 6, 1}));
+
+  int kernel_h = 2;
+  int kernel_w = 2;
+  int stride = 2;
+
+  Tensor t2 = t1.unfold(2, kernel_h, stride);
+  // std::cout << t2.shape();
+  // std::cout << t2.strides();
+
+  EXPECT_TRUE(t2.shape() == TensorShape({2, 3, 2, 6, 2}));
+  EXPECT_TRUE(t2.strides() == TensorShape({72, 24, 12, 1, 6}));
+
+  Tensor t3 = t2.unfold(3, kernel_w, stride);
+  EXPECT_TRUE(t3.shape() == TensorShape({2, 3, 2, 3, 2, 2}));
+  EXPECT_TRUE(t3.strides() == TensorShape({72, 24, 12, 2, 6, 1}));
+
+  EXPECT_TRUE(
+      t3 ==
+      Tensor(
+          {2, 3, 2, 3, 2, 2},
+          {0,   1,   6,   7,   2,   3,   8,   9,   4,   5,   10,  11,  12,  13,
+           18,  19,  14,  15,  20,  21,  16,  17,  22,  23,  24,  25,  30,  31,
+           26,  27,  32,  33,  28,  29,  34,  35,  36,  37,  42,  43,  38,  39,
+           44,  45,  40,  41,  46,  47,  48,  49,  54,  55,  50,  51,  56,  57,
+           52,  53,  58,  59,  60,  61,  66,  67,  62,  63,  68,  69,  64,  65,
+           70,  71,  72,  73,  78,  79,  74,  75,  80,  81,  76,  77,  82,  83,
+           84,  85,  90,  91,  86,  87,  92,  93,  88,  89,  94,  95,  96,  97,
+           102, 103, 98,  99,  104, 105, 100, 101, 106, 107, 108, 109, 114, 115,
+           110, 111, 116, 117, 112, 113, 118, 119, 120, 121, 126, 127, 122, 123,
+           128, 129, 124, 125, 130, 131, 132, 133, 138, 139, 134, 135, 140, 141,
+           136, 137, 142, 143}));
+}
+

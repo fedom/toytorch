@@ -1,5 +1,5 @@
 #include "nn/autograd/backward_node_unary_op.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
 
 namespace toytorch::autograd {
 

@@ -5,15 +5,16 @@
 
 namespace toytorch {
 
-Tensor empty(const std::vector<int> &shape, bool requires_grad = false);
-Tensor zero(const std::vector<int> &shape, bool requires_grad = false);
-Tensor ones(const std::vector<int> &shape, bool requires_grad = false);
+Tensor empty(const TensorShape &shape, bool requires_grad = false);
+Tensor zero(const TensorShape &shape, bool requires_grad = false);
+Tensor ones(const TensorShape &shape, bool requires_grad = false);
+Tensor arange(float start, float end, float step = 1, bool requires_grad = false);
 
 // Uniform distribution
-Tensor rand(const std::vector<int> &shape, bool requires_grad = false);
+Tensor rand(const TensorShape &shape, bool requires_grad = false);
 
 // Normal distribution
-Tensor randn(const std::vector<int> &shape, bool requires_grad = false);
+Tensor randn(const TensorShape &shape, bool requires_grad = false);
 
 Tensor empty_like(const Tensor &input, bool requires_grad = false);
 Tensor zero_like(const Tensor &input, bool requires_grad = false);

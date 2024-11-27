@@ -2,8 +2,8 @@
 #include "nn/autograd/autograd.h"
 #include "nn/autograd/backward_node_leaf_op.h"
 #include "nn/autograd/edge.h"
-#include "nn/tensor/tensor_operations.h"
-#include "exception/exceptions.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/exceptions/exceptions.h"
 #include <queue>
 
 namespace toytorch::autograd {

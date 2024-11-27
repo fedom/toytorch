@@ -3,7 +3,10 @@
 #include "nn/autograd/autograd.h"
 #include "nn/tensor/tensor.h"
 #include "nn/tensor/tensor_creator.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/common_types.h"
+#include "nn/operations/losses.h"
+#include "nn/operations/matrix.h"
 #include "nn/debug/debug_utils.h"
 
 using namespace toytorch;

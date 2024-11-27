@@ -7,9 +7,9 @@
     {
       "type" : "cppdbg",
       "request": "launch",
-      "name" : "Launch nn_example_test",
+      "name" : "Launch toytorch_test",
       "cwd": "${workspaceFolder}",
-      "program":"${workspaceRoot}/build/test/nn_example_test",
+      "program":"${workspaceRoot}/build/test/toytorch_test",
       // "args": ["--gtest_filter=TensorHelperTest.*"],
       "MIMode": "lldb",
     }

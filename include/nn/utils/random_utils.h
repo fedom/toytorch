@@ -1,5 +1,5 @@
-#ifndef UTILITY_RANDOM_UTIL_H__
-#define UTILITY_RANDOM_UTIL_H__
+#ifndef NN_UTILITY_RANDOM_UTILS_H__
+#define NN_UTILITY_RANDOM_UTILS_H__
 #include <cassert>
 #include <concepts>
 #include <cstdlib>
@@ -64,4 +64,4 @@ class NormalRNGenerator : public RNGeneratorBase<T> {
   NormalRNDistrib_t<T> distrib_;
 };
 
-#endif  // UTILITY_RANDOM_UTIL_H__
+#endif  // NN_UTILITY_RANDOM_UTILS_H__

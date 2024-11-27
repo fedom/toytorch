@@ -1,6 +1,6 @@
 #include "tensor_helper.h"
 #include <cmath>
-#include "exception/exceptions.h"
+#include "nn/exceptions/exceptions.h"
 
 namespace toytorch {
 

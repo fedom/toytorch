@@ -1,5 +1,5 @@
 #include "nn/modules/activation_registry.h"
-#include "exception/exceptions.h"
+#include "nn/exceptions/exceptions.h"
 
 namespace toytorch {
 

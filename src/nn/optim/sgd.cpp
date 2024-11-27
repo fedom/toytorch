@@ -1,5 +1,5 @@
 #include "nn/optim/sgd.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
 
 namespace toytorch::optim {
 

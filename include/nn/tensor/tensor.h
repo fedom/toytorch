@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 #include "nn/autograd/tensor_grad_info.h"
-#include "random_generator.h"
+#include "nn/tensor/random_generator.h"
 #include "tensor_impl.h"
 
 namespace toytorch {
@@ -105,6 +105,7 @@ class Tensor {
   // operation shortcut
   Tensor squeeze(int dim) const;
   Tensor unsqueeze(int dim) const;  
+  Tensor unfold(int dim, int size, int step = 1) const;  
   Tensor expand(const TensorShape &shape) const;
   Tensor view(const TensorShape &shape) const;
   Tensor pow(const Tensor &exp) const;
@@ -134,7 +135,6 @@ class Tensor {
 
   const float* raw_data() const { return impl_->raw_data(); }
   void print() const { impl_->print(); }
-  void print_shape() const {impl_->print_shape();}
 
   uintptr_t identity() const {return reinterpret_cast<uintptr_t>(impl_.get());}
 

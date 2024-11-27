@@ -1,9 +1,9 @@
 #include "nn/modules/activation.h"
-#include "nn/tensor/tensor_operations.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/activations.h"
 #include "nn/autograd/autograd.h"
 #include "nn/autograd/backward_node_activation_op.h"
-#include "exception/exceptions.h"
+#include "nn/exceptions/exceptions.h"
 #include "nn/modules/activation_registry.h"
 #include <iostream>
 

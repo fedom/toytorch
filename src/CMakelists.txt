@@ -2,9 +2,13 @@
 set(SRC
         ./nn/tensor/tensor.cpp
         ./nn/tensor/tensor_impl.cpp
-        ./nn/tensor/tensor_helper.cpp
-        ./nn/tensor/tensor_operations.cpp
         ./nn/tensor/tensor_creator.cpp
+        ./nn/operations/tensor_helper.cpp
+        ./nn/operations/tensor_operations.cpp
+        ./nn/operations/convolution.cpp
+        ./nn/operations/matrix.cpp
+        ./nn/operations/losses.cpp
+        ./nn/operations/activations.cpp
         ./nn/modules/linear.cpp
         ./nn/modules/activation.cpp
         ./nn/modules/module.cpp
@@ -18,6 +22,7 @@ set(SRC
         ./nn/autograd/backward_node_binary_op.cpp
         ./nn/autograd/backward_node_leaf_op.cpp
         ./nn/autograd/backward_node_activation_op.cpp
+        ./nn/autograd/backward_node_loss_op.cpp
         ./nn/debug/backward_graph_builder.cpp
         ./nn/debug/debug_utils.cpp
         )

@@ -1,5 +1,5 @@
 #include "nn/autograd/backward_node_unimplement_op.h"
-#include "exception/exceptions.h"
+#include "nn/exceptions/exceptions.h"
 
 namespace toytorch::autograd {
 

@@ -2,11 +2,11 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include "exception/exceptions.h"
+#include "nn/exceptions/exceptions.h"
 #include "nn/autograd/autograd.h"
-#include "nn/tensor/tensor_operations.h"
-#include "nn/tensor/tensor_operations.h"
-#include "tensor_helper.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/tensor_helper.h"
 
 namespace toytorch {
 
@@ -279,17 +279,5 @@ std::string TensorImpl::print_level(int flat_index_base, int layer) const {
   ss << "]";
   return ss.str();
 }
-
-void TensorImpl::print_shape() const {
-  std::ostringstream oss;
-
-  oss << "[";
-  for (auto i : shape_) {
-    oss << i << ",";
-  }
-  oss << "]";
-  std::cout << oss.str() << std::endl;
-}
-
 
 }  // namespace toytorch

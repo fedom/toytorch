@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include "nn/tensor/tensor_helper.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_helper.h"
+#include "nn/operations/tensor_operations.h"
 #include "nn/tensor/tensor_creator.h"
-#include "exception/exceptions.h"
+#include "nn/exceptions/exceptions.h"
 #include "nn/optim/sgd.h"
 
 using namespace toytorch;

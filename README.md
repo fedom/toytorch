@@ -1,7 +1,7 @@
 # ToyTorch
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-This project was created as a practice exercise while I was learning about neural network with PyTorch. To deepen my understanding, I wrote some test code to mimic PyTorch's behavior. Over time, this evolved into simple neural network engine. I made it available for anyone who wants to quickly grasp the concepts by experimenting with it. 
+This project was created as a practice exercise while I was learning about neural network with PyTorch. To deepen my understanding, I wrote some test code to mimic PyTorch's behavior. Over time, this evolved into a simple neural network framework. I made it available for anyone who wants to quickly grasp the concepts by experimenting with it. 
 
 Please note that efficiency and elegance were not prioritized. The main goal is ease of understanding. Treat it as a fun experiment and enjoy!
 
@@ -24,6 +24,9 @@ Current features include:
     
 - **Activation function**
   - Sigmoid, Relu
+
+- **Loss function**
+  - smooth_l1_loss
     
 - **Autograd mechanism**
   - Dynamic update the backward graph if the tensor requires_grad=True

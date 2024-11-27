@@ -1,8 +1,8 @@
 #include "nn/tensor/tensor.h"
 #include "nn/tensor/tensor_creator.h"
-#include "nn/tensor/tensor_helper.h"
-#include "exception/exceptions.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_helper.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/exceptions/exceptions.h"
 #include <gtest/gtest.h>
 
 using namespace toytorch;
@@ -193,7 +193,6 @@ TEST(TensorTest, View) {
   Tensor t1 = ones({2, 3, 3, 4, 5});
 
   Tensor t = t1.view({-1});
-  t.print_shape();
   EXPECT_TRUE(t.shape() == TensorShape({360}));
   EXPECT_TRUE(t.view({-1}).strides() == TensorShape({1}));
 

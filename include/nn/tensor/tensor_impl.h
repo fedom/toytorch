@@ -2,7 +2,7 @@
 #define SRC_NN_TENSOR_IMPL_H__
 #include <cassert>
 #include <functional>
-#include <vector>
+#include "nn/tensor/types.h"
 #include "random_generator.h"
 #include "nn/autograd/tensor_grad_info.h"
 
@@ -11,9 +11,6 @@ namespace toytorch {
 namespace  autograd {
 class GradInfo;
 }
-
-using TensorShape = std::vector<int>;
-using TensorIndices = std::vector<int>;
 
 class TensorImpl {
  public:
@@ -138,7 +135,6 @@ class TensorImpl {
 
   // Debug
   void print() const;
-  void print_shape() const;
 
  private:
   std::string print_level(int base_index, int layer) const;

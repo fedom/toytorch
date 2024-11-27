@@ -10,6 +10,10 @@ using autograd::Node;
 
 namespace {
 
+std::string rstrip_id_suffix(const std::string &s) {
+  return s.substr(0, s.find_last_of('_'));
+}
+
 std::string get_tensor_node_style() {
   return "node [shape=circle style=filled fillcolor=aquamarine fontcolor=black fontsize=20]";
 }
@@ -68,7 +72,7 @@ std::string BackwardGraphBuilder::print_backward_graph(const Tensor& tensor) {
 
   oss << get_backward_op_node_style() << "\n";
   for (auto& str : backward_op_nodes_) {
-    oss << str << "\n";
+    oss << str << "[label=\"" << rstrip_id_suffix(str) <<"\"]" << "\n";
   }
 
   for (auto& edge : edges_) {
@@ -84,6 +88,11 @@ void BackwardGraphBuilder::handle_tensor(const Tensor& tensor) {
 
   std::shared_ptr<Node> backward_op_node = tensor.grad_info()->grad_fn;
   std::string backward_op_node_id = backward_op_node->id();
+
+  // Omit the leaf params' backward op node makes the graph look better.
+  if (backward_op_node_id.starts_with("LeafNodeBackward_")) {
+    return;
+  }
 
   edges_.push_back(tensor_node_id + " -> " + backward_op_node_id);
   backward_op_nodes_.insert(backward_op_node_id);

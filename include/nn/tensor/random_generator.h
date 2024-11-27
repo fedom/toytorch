@@ -1,6 +1,6 @@
 #ifndef TOYTORCH_NN_TENSOR_RANDOM_GENERATOR_H__
 #define TOYTORCH_NN_TENSOR_RANDOM_GENERATOR_H__
-#include "utils/random_util.h"
+#include "nn/utils/random_utils.h"
 
 namespace toytorch {
 

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "nn/tensor/tensor_helper.h"
-#include "exception/exceptions.h"
+#include "nn/operations/tensor_helper.h"
+#include "nn/exceptions/exceptions.h"
 
 using namespace toytorch;
 

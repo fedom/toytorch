@@ -1,6 +1,11 @@
 set(TEST_SRC unit/nn/tensor/tensor.cpp
-             unit/nn/tensor/tensor_operations.cpp
-             unit/nn/tensor/tensor_helper.cpp
+             unit/nn/tensor/tensor_creator.cpp
+             unit/nn/operations/tensor_operations.cpp
+             unit/nn/operations/tensor_helper.cpp
+             unit/nn/operations/convolution.cpp
+             unit/nn/operations/activations.cpp
+             unit/nn/operations/losses.cpp
+             unit/nn/operations/matrix.cpp
              unit/nn/modules/activation.cpp
              unit/nn/modules/linear.cpp
              unit/nn/modules/module.cpp

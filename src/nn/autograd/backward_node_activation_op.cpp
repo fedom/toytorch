@@ -1,7 +1,7 @@
 #include "nn/autograd/backward_node_activation_op.h"
-#include "nn/tensor/tensor_operations.h"
 #include "nn/tensor/tensor_creator.h"
-#include "nn/tensor/tensor_operations.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/operations/activations.h"
 
 namespace toytorch::autograd {
 
