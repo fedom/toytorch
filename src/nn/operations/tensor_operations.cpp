@@ -1,13 +1,22 @@
+#include "nn/operations/tensor_operations.h"
 #include "nn/autograd/autograd.h"
 #include "nn/autograd/backward_node_activation_op.h"
 #include "nn/autograd/backward_node_binary_op.h"
 #include "nn/autograd/backward_node_leaf_op.h"
 #include "nn/autograd/backward_node_unary_op.h"
-#include "nn/operations/tensor_helper.h"
-#include "nn/operations/tensor_operations.h"
 #include "nn/exceptions/exceptions.h"
+#include "nn/operations/tensor_helper.h"
+#include "nn/utils/print_utils.h"
+#include <iostream>
 
 namespace toytorch {
+
+
+inline void normalize_dim(const Tensor &t, int &dim) {
+  if (dim < 0) {
+    dim = t.dim() + dim;
+  }
+}
 
 using autograd::Edge;
 using autograd::Node;
@@ -88,16 +97,15 @@ Tensor abs(const Tensor& tensor) {
   return result;
 }
 
-Tensor sign(const Tensor &tensor) {
+Tensor sign(const Tensor& tensor) {
   Tensor result =
       TensorHelper::elementwise_unary_op(tensor, TensorHelper::EWUOP_SIGN);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(sign, tensor);
-  
+  BACKWARD_NOT_IMPLEMENTED_YET("sign", tensor);
+
   return result;
 }
-
 
 Tensor unsqueeze(const Tensor& tensor, int dim) {
   int ndim = tensor.dim();
@@ -121,7 +129,7 @@ Tensor unsqueeze(const Tensor& tensor, int dim) {
   result.shape().insert(result.shape().begin() + dim, 1);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(unsqueeze, tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("unsqueeze", tensor);
 
   return result;
 }
@@ -145,13 +153,13 @@ Tensor squeeze(const Tensor& tensor, int dim) {
   result.strides().erase(result.strides().begin() + dim);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(squeeze, tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("squeeze", tensor);
 
   return result;
 }
 
 // https://pytorch.org/docs/stable/generated/torch.nn.Unfold.html#torch.nn.Unfold
-// unfold doesn't require tensor is contiguous() but the result is an uncontiguous tensor 
+// unfold doesn't require tensor is contiguous() but the result is an uncontiguous tensor
 Tensor unfold(const Tensor& tensor, int dim, int size, int step) {
   Tensor result(tensor.meta_copy());
 
@@ -171,11 +179,12 @@ Tensor unfold(const Tensor& tensor, int dim, int size, int step) {
 
   result.shape()[dim] = cur_dim_new_len;
   result.strides()[dim] = cur_dim_new_stride;
-  result.shape().push_back(extended_dim_len);;
+  result.shape().push_back(extended_dim_len);
+  ;
   result.strides().push_back(extended_dim_stride);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(unfold, tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("unfold", tensor);
 
   return result;
 }
@@ -245,7 +254,7 @@ Tensor cat(const std::vector<Tensor>& tensors, int dim) {
       TensorHelper::increment_indices(indices_first_part, shape_first_part));
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET_VEC(cat, tensors);
+  BACKWARD_NOT_IMPLEMENTED_YET_VEC("cat", tensors);
 
   return result;
 }
@@ -369,7 +378,7 @@ Tensor select(const Tensor& tensor, int axis, int index,
 Tensor sum(const Tensor& tensor) {
   float sum_v = 0;
   const float* data = tensor.raw_data();
-  for (int i = 0; i < tensor.data_size(); i++) {
+  for (int i = 0; i < tensor.numel(); i++) {
     sum_v += *(data + i);
   }
 
@@ -392,7 +401,7 @@ Tensor sum(const Tensor& tensor, int axis, bool keep_dim /* = false*/) {
   }
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(sum1, tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("sum1", tensor);
 
   return result;
 }
@@ -415,14 +424,14 @@ Tensor sum(const Tensor& tensor, const std::vector<int>& dims,
   }
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(sum2, tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("sum2", tensor);
 
   return result;
 }
 
 Tensor mean(const Tensor& tensor) {
   // We don't need to update graph here, since it makes use of existing operations
-  return sum(tensor) / tensor.data_size();
+  return sum(tensor) / tensor.numel();
 }
 
 Tensor mean(const Tensor& tensor, int dim, bool keep_dim) {
@@ -431,8 +440,7 @@ Tensor mean(const Tensor& tensor, int dim, bool keep_dim) {
   return sum(tensor, dim, keep_dim) / count;
 }
 
-Tensor mean(const Tensor& tensor, const std::vector<int>& dims,
-            bool keep_dim) {
+Tensor mean(const Tensor& tensor, const std::vector<int>& dims, bool keep_dim) {
   // We don't need to update graph here, since it makes use of existing operations
   int count = 1;
   for (auto dim : dims) {
@@ -451,7 +459,11 @@ Tensor transpose(const Tensor& tensor) {
 }
 
 Tensor transpose(const Tensor& tensor, int dim1, int dim2) {
-  if (!(dim1 < tensor.dim() && dim2 < tensor.dim())) {
+
+  normalize_dim(tensor, dim1);
+  normalize_dim(tensor, dim2);
+
+  if (!(dim1 >= 0 && dim1 < tensor.dim() && dim2 >= 0 && dim2 < tensor.dim())) {
     throw ExceptionTensorShapeIncompatible();
   }
 
@@ -462,7 +474,79 @@ Tensor transpose(const Tensor& tensor, int dim1, int dim2) {
   std::swap(result.strides()[dim1], result.strides()[dim2]);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(transpose, tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("transpose", tensor);
+
+  return result;
+}
+
+Tensor slice(const Tensor& tensor, int dim, int start, int end) {
+
+  // we support negative dim index, -1 is the last
+  if (dim < 0) {
+    dim = tensor.dim() + dim;
+  }
+
+  if (dim < 0 || dim >= tensor.dim()) {
+    throw ExceptionInvalidArgument("slice() arg dim out of range");
+  }
+  if (!(start >= 0 && end <= tensor.dim(dim) && start < end)) {
+    throw ExceptionInvalidArgument("slice() args start & end are not valid");
+  }
+
+  Tensor result(tensor.meta_copy());
+
+  result.shape()[dim] = end - start;
+  int offset = result.strides()[dim] * start;
+  result.set_offset(offset + result.offset());
+
+  // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
+  BACKWARD_NOT_IMPLEMENTED_YET("transpose", tensor);
+
+  return result;
+}
+
+Tensor flip(const Tensor& input, const std::vector<int>& dims) {
+  TensorShape shape = input.shape();
+  Tensor result = input.deep_copy();
+
+  for (auto dim : dims) {
+    if (dim < 0) {
+      // transform to positive index
+      dim = result.dim() + dim;
+    }
+    assert(dim >= 0 && dim < result.dim());
+
+    TensorShape shape_first_part(shape.begin(), shape.begin() + dim);
+    TensorIndices indices_first_part(shape_first_part.size(), 0);
+
+    TensorShape shape_second_part(shape.begin() + dim + 1, shape.end());
+    TensorIndices indices_second_part(shape_second_part.size(), 0);
+
+    do {
+
+      for (int i = 0; i < shape[dim] / 2; i++) {
+
+        TensorIndices i1 = indices_first_part;
+        i1.push_back(i);
+        TensorIndices i2 = indices_first_part;
+        i2.push_back(shape[dim] - 1 - i);
+
+        do {
+
+          TensorIndices index1 = TensorHelper::merge_indices(i1, indices_second_part);
+          TensorIndices index2 = TensorHelper::merge_indices(i2, indices_second_part);
+
+          std::swap(result.at(index1), result.at(index2));
+        } while (TensorHelper::increment_indices(indices_second_part,
+                                                 shape_second_part));
+      }
+
+    } while (
+        TensorHelper::increment_indices(indices_first_part, shape_first_part));
+  }
+
+  // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
+  BACKWARD_NOT_IMPLEMENTED_YET("flip", input);
 
   return result;
 }

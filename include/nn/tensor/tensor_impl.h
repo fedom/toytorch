@@ -2,25 +2,26 @@
 #define SRC_NN_TENSOR_IMPL_H__
 #include <cassert>
 #include <functional>
+#include "nn/autograd/tensor_grad_info.h"
 #include "nn/tensor/types.h"
 #include "random_generator.h"
-#include "nn/autograd/tensor_grad_info.h"
 
 namespace toytorch {
 
-namespace  autograd {
+namespace autograd {
 class GradInfo;
 }
 
 class TensorImpl {
  public:
-
   TensorImpl() {}
   TensorImpl(float n);  // for 0-dimensional scalar tensor
-  TensorImpl(const TensorShape& shape, float val = 0, bool requires_grad = false);  // for multi-dimensional
-  TensorImpl(const TensorShape& shape, const std::vector<float>& data, bool requires_grad = false);
+  TensorImpl(const TensorShape& shape, float val = 0,
+             bool requires_grad = false);  // for multi-dimensional
+  TensorImpl(const TensorShape& shape, const std::vector<float>& data,
+             bool requires_grad = false);
   TensorImpl(const TensorShape& shape, RandomGeneratorBase& gen,
-         bool requires_grad = false);
+             bool requires_grad = false);
 
   virtual ~TensorImpl() {}
 
@@ -31,10 +32,6 @@ class TensorImpl {
   TensorImpl& operator=(TensorImpl&& other);
 
   TensorImpl deep_copy() const;
-
-
-
-
 
   // Access operators
   float& at(const TensorIndices& indices);
@@ -68,7 +65,6 @@ class TensorImpl {
 
   inline bool requires_grad() const { return !!grad_info_; }
 
-
   // Member accessors
   inline const TensorShape& shape() const { return shape_; }
   inline TensorShape& shape() { return shape_; }
@@ -76,13 +72,30 @@ class TensorImpl {
   inline const TensorShape& strides() const { return strides_; }
   inline TensorShape& strides() { return strides_; }
 
+  inline int dim() const { return shape_.size(); }
+  inline int dim(int index) const {
+    if (index < 0) {
+      index = shape_.size() + index;
+    }
+    assert(index >= 0 && index < shape_.size());
+    return shape_[index];
+  }
 
-  inline size_t dim() const { return shape_.size(); }
-  inline size_t data_size() const { return data_->size(); }
+  inline int offset() const { return offset_; }
+  inline void set_offset(int offset) { offset_ = offset; }
 
-  const float* raw_data() const { return data_->data(); }
+  // inline size_t data_size() const { return data_->size(); }
+  inline size_t numel() const {
+    size_t n = 1;
+    for (auto i : shape_) {
+      n *= i;
+    }
+    return n;
+  }
 
-  std::shared_ptr<autograd::GradInfo> grad_info() const {return grad_info_;}
+  float* raw_data() const { return data_->data() + offset_; }
+
+  std::shared_ptr<autograd::GradInfo> grad_info() const { return grad_info_; }
 
   std::shared_ptr<Tensor> grad() const {
     if (grad_info_) {
@@ -115,15 +128,12 @@ class TensorImpl {
    */
   bool strict_equal(const TensorImpl& rhs) const;
 
-
   bool strict_allclose(const TensorImpl& rhs, float rtol = 1e-5,
                        float atol = 1e-8, bool equal_nan = false) const;
 
-
-
-  // Autograd 
+  // Autograd
   // void backward();
-  
+
   // TensorImpl transpose() const;
   // TensorImpl transpose(int dim1, int dim2) const;
 
@@ -132,9 +142,10 @@ class TensorImpl {
   // TensorImpl sum(const std::vector<int> &dims, bool keep_dim = false) const;
   // TensorImpl take(int dim, int index, bool keep_dim = false) const;
 
-
   // Debug
   void print() const;
+  void print_shape() const;
+  void print_strides() const;
 
  private:
   std::string print_level(int base_index, int layer) const;
@@ -162,15 +173,11 @@ class TensorImpl {
     return flat_index;
   }
 
-  // friend Tensor sum(const Tensor &tensor, const std::vector<int>& dims,
-  //                  bool keep_dim /* = false*/);
-  // friend Tensor transpose(const Tensor &tensor, int dim1, int dim2);
-
   std::shared_ptr<std::vector<float>> data_;
   TensorShape shape_;
   TensorShape strides_;
 
-  // int offset_;
+  int offset_;
 
   mutable std::shared_ptr<autograd::GradInfo> grad_info_;
 };

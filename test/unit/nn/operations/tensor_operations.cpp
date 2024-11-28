@@ -1,11 +1,11 @@
 #include "nn/operations/tensor_operations.h"
-#include "nn/operations/losses.h"
+#include <gtest/gtest.h>
 #include "nn/exceptions/exceptions.h"
+#include "nn/operations/common_types.h"
+#include "nn/operations/losses.h"
 #include "nn/tensor/tensor.h"
 #include "nn/tensor/tensor_creator.h"
 #include "nn/utils/print_utils.h"
-#include "nn/operations/common_types.h"
-#include <gtest/gtest.h>
 
 using namespace toytorch;
 
@@ -31,7 +31,6 @@ TEST(TensorOperationsTest, ArithmeticOperandUnchangedAfterBroadcast) {
   EXPECT_TRUE(t1 == Tensor({1, 2}, {1, 1}));
   EXPECT_TRUE(t2 == Tensor({3, 2}, {1, 2, 3, 4, 5, 6}));
 }
-
 
 TEST(TensorOperationsTest, ElementwiseUnaryOpExp) {
   Tensor t({2, 3}, {1, 1, 1, 1, 1, 1});
@@ -452,3 +451,88 @@ TEST(TensorOperationsTest, unfold) {
            136, 137, 142, 143}));
 }
 
+TEST(TensorOperationsTest, slice) {
+  Tensor t1 = arange(0, 60).view({3, 4, 5});
+
+  Tensor t2 = t1.slice(1, 1, 3);
+  EXPECT_TRUE(t2 ==
+              Tensor({3, 2, 5}, {5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
+                                 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+                                 45, 46, 47, 48, 49, 50, 51, 52, 53, 54}));
+
+  Tensor t3 = t2.slice(2, 2, 4);
+  EXPECT_TRUE(
+      t3 == Tensor({3, 2, 2}, {7, 8, 12, 13, 27, 28, 32, 33, 47, 48, 52, 53}));
+
+  Tensor t4 = t1.slice(0, 0, 3).slice(1, 0, 4).slice(2, 0, 5);
+
+  EXPECT_TRUE(t4 == t1);
+
+  // dim out of range
+  EXPECT_THROW(t1.slice(3, 1, 2), ExceptionInvalidArgument);
+
+  // start > end
+  EXPECT_THROW(t1.slice(0, 4, 2), ExceptionInvalidArgument);
+
+  // start out of range
+  EXPECT_THROW(t1.slice(0, 4, 6), ExceptionInvalidArgument);
+
+  // end out of range
+  EXPECT_THROW(t1.slice(0, 1, 4), ExceptionInvalidArgument);
+}
+
+TEST(TensorOperationsTest, flip) {
+
+  Tensor t = arange(0, 120).view({2, 3, 4, 5});
+
+  Tensor result = flip(t, {1, 2});
+  result.print();
+
+  EXPECT_TRUE(
+      result ==
+      Tensor(
+          {2, 3, 4, 5},
+          {55,  56,  57,  58,  59,  50,  51,  52,  53,  54,  45,  46,  47,  48,
+           49,  40,  41,  42,  43,  44,  35,  36,  37,  38,  39,  30,  31,  32,
+           33,  34,  25,  26,  27,  28,  29,  20,  21,  22,  23,  24,  15,  16,
+           17,  18,  19,  10,  11,  12,  13,  14,  5,   6,   7,   8,   9,   0,
+           1,   2,   3,   4,   115, 116, 117, 118, 119, 110, 111, 112, 113, 114,
+           105, 106, 107, 108, 109, 100, 101, 102, 103, 104, 95,  96,  97,  98,
+           99,  90,  91,  92,  93,  94,  85,  86,  87,  88,  89,  80,  81,  82,
+           83,  84,  75,  76,  77,  78,  79,  70,  71,  72,  73,  74,  65,  66,
+           67,  68,  69,  60,  61,  62,  63,  64}));
+
+  result = flip(t, {2, 3});
+  result.print();
+
+  EXPECT_TRUE(
+      result ==
+      Tensor(
+          {2, 3, 4, 5},
+          {19,  18,  17,  16,  15,  14,  13,  12,  11,  10,  9,   8,   7,   6,
+           5,   4,   3,   2,   1,   0,   39,  38,  37,  36,  35,  34,  33,  32,
+           31,  30,  29,  28,  27,  26,  25,  24,  23,  22,  21,  20,  59,  58,
+           57,  56,  55,  54,  53,  52,  51,  50,  49,  48,  47,  46,  45,  44,
+           43,  42,  41,  40,  79,  78,  77,  76,  75,  74,  73,  72,  71,  70,
+           69,  68,  67,  66,  65,  64,  63,  62,  61,  60,  99,  98,  97,  96,
+           95,  94,  93,  92,  91,  90,  89,  88,  87,  86,  85,  84,  83,  82,
+           81,  80,  119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108,
+           107, 106, 105, 104, 103, 102, 101, 100}));
+
+  result = flip(t, {0, 1, 2, 3});
+  result.print();
+
+  EXPECT_TRUE(
+      result ==
+      Tensor(
+          {2, 3, 4, 5},
+          {119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 106,
+           105, 104, 103, 102, 101, 100, 99,  98,  97,  96,  95,  94,  93,  92,
+           91,  90,  89,  88,  87,  86,  85,  84,  83,  82,  81,  80,  79,  78,
+           77,  76,  75,  74,  73,  72,  71,  70,  69,  68,  67,  66,  65,  64,
+           63,  62,  61,  60,  59,  58,  57,  56,  55,  54,  53,  52,  51,  50,
+           49,  48,  47,  46,  45,  44,  43,  42,  41,  40,  39,  38,  37,  36,
+           35,  34,  33,  32,  31,  30,  29,  28,  27,  26,  25,  24,  23,  22,
+           21,  20,  19,  18,  17,  16,  15,  14,  13,  12,  11,  10,  9,   8,
+           7,   6,   5,   4,   3,   2,   1,   0}));
+}

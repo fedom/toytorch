@@ -24,7 +24,7 @@ class ExceptionOpBackwardNotImplemented : public ExceptionNotImpl {
  public:
   ExceptionOpBackwardNotImplemented(
       const std::string& msg = "")
-      : ExceptionNotImpl("OpBackwardNotImplemented,") {}
+      : ExceptionNotImpl("OpBackwardNotImplemented," + msg) {}
 };
 
 class ExceptionInvalidArgument : public ExceptionBase {

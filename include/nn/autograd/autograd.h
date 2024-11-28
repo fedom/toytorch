@@ -3,8 +3,8 @@
 #define TOYTORCH_NN_AUTOGRAD_AUTOGRAD_H__
 #include <memory>
 #include <vector>
-#include "nn/tensor/tensor.h"
 #include "nn/autograd/node.h"
+#include "nn/tensor/tensor.h"
 
 namespace toytorch::autograd {
 
@@ -53,12 +53,37 @@ class GradModeGuard {
     }                                                                         \
   } while (false)
 
+#define UPDATE_BACKWARD_GRAPH_3(result, backward_node_name, arg1, arg2, arg3, \
+                                ...)                                          \
+  do {                                                                        \
+    if (autograd::grad_enabled &&                                             \
+        autograd::is_either_requires_grad({__VA_ARGS__})) {                   \
+      autograd::update_backward_graph(                                        \
+          result,                                                             \
+          std::make_shared<autograd::backward_node_name>(arg1, arg2, arg3),   \
+          {__VA_ARGS__});                                                     \
+    }                                                                         \
+  } while (false)
+
+#define UPDATE_BACKWARD_GRAPH_4(result, backward_node_name, arg1, arg2, arg3, \
+                                arg4, ...)                                    \
+  do {                                                                        \
+    if (autograd::grad_enabled &&                                             \
+        autograd::is_either_requires_grad({__VA_ARGS__})) {                   \
+      autograd::update_backward_graph(                                        \
+          result,                                                             \
+          std::make_shared<autograd::backward_node_name>(arg1, arg2, arg3,    \
+                                                         arg4),               \
+          {__VA_ARGS__});                                                     \
+    }                                                                         \
+  } while (false)
+
 #define BACKWARD_NOT_IMPLEMENTED_YET(opname, ...)             \
   do {                                                        \
     if (autograd::grad_enabled &&                             \
         autograd::is_either_requires_grad({__VA_ARGS__})) {   \
       throw ExceptionOpBackwardNotImplemented(                \
-          std::string(#opname) +                              \
+          std::string(opname) +                               \
           " called on tensors that requires grad hasn't been" \
           " supported yet.");                                 \
     }                                                         \
@@ -69,7 +94,7 @@ class GradModeGuard {
     if (autograd::grad_enabled &&                                \
         autograd::is_either_requires_grad(args_vec)) {           \
       throw ExceptionOpBackwardNotImplemented(                   \
-          std::string(#opname) +                                 \
+          std::string(opname) +                                  \
           " arguments requires grad but its backward logic has " \
           "not been implemented yet");                           \
     }                                                            \
@@ -81,6 +106,6 @@ void update_backward_graph(Tensor& result, std::shared_ptr<Node> node,
                            const std::vector<Tensor>& tensors);
 void backward(const Tensor& root, Tensor gradient = Tensor(1));
 
-} // namespace toytorch::autograd
+}  // namespace toytorch::autograd
 
-#endif // TOYTORCH_NN_AUTOGRAD_AUTOGRAD_H__
+#endif  // TOYTORCH_NN_AUTOGRAD_AUTOGRAD_H__

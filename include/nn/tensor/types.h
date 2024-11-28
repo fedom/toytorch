@@ -4,8 +4,11 @@
 
 namespace toytorch {
 
-using TensorShape = std::vector<int>;
-using TensorIndices = std::vector<int>;
+using tt_float = float;
+using tt_int = int;
+
+using TensorShape = std::vector<tt_int>;
+using TensorIndices = std::vector<tt_int>;
 
 } // namespace toytorch
 

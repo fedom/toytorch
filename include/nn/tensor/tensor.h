@@ -48,8 +48,12 @@ class Tensor {
   inline const TensorShape& strides() const { return impl_->strides(); }
   inline TensorShape& strides() { return impl_->strides(); }
 
-  inline size_t dim() const { return impl_->dim(); }
-  inline size_t data_size() const { return impl_->data_size(); }
+  inline int offset() const {return impl_->offset();}
+  inline void set_offset(int offset) {impl_->set_offset(offset);}
+
+  inline int dim() const { return impl_->dim(); }
+  inline int dim(int index) const {return impl_->dim(index);}
+  inline size_t numel() const { return impl_->numel(); }
   inline bool is_scalar() const { return impl_->is_scalar(); }
   inline bool is_contiguous() const {return impl_->is_contiguous();}
 
@@ -121,6 +125,7 @@ class Tensor {
   Tensor sum(int dim, bool keep_dim = false) const;
   Tensor sum(const std::vector<int>& dims, bool keep_dim = false) const;
   Tensor select(int dim, int index, bool keep_dim = false) const;
+  Tensor slice(int dim, int start, int end) const;
 
   bool requires_grad() const { return impl_->requires_grad(); }
 
@@ -134,7 +139,10 @@ class Tensor {
   void backward();
 
   const float* raw_data() const { return impl_->raw_data(); }
+
   void print() const { impl_->print(); }
+  void print_shape() const { impl_->print_shape(); }
+  void print_stride() const { impl_->print_strides(); }
 
   uintptr_t identity() const {return reinterpret_cast<uintptr_t>(impl_.get());}
 

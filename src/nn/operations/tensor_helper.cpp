@@ -183,7 +183,7 @@ float TensorHelper::apply_unary_op(ElementwiseUnaryOperation op, float a) {
 Tensor TensorHelper::elementwise_unary_op(const Tensor& tensor,
                                           ElementwiseUnaryOperation op) {
   Tensor result = tensor.deep_copy();
-  for (int i = 0; i < result.data_size(); i++) {
+  for (int i = 0; i < result.numel(); i++) {
     result[i] = apply_unary_op(op, result[i]);
   }
   return result;
@@ -203,13 +203,13 @@ Tensor TensorHelper::elementwise_binary_op_scalar(
   if (tensor_a.is_scalar()) {
     result = tensor_b.deep_copy();
     float scalar_val = tensor_a[0];
-    for (int i = 0; i < result.data_size(); i++) {
+    for (int i = 0; i < result.numel(); i++) {
       result[i] = apply_binary_op(op, scalar_val, result[i]);
     }
   } else {
     result = tensor_a.deep_copy();
     float scalar_val = tensor_b[0];
-    for (int i = 0; i < result.data_size(); i++) {
+    for (int i = 0; i < result.numel(); i++) {
       result[i] = apply_binary_op(op, result[i], scalar_val);
     }
   }

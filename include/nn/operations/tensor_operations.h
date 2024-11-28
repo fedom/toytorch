@@ -35,8 +35,6 @@ Tensor neg(const Tensor& tensor);
 Tensor abs(const Tensor& tensor);
 Tensor sign(const Tensor& tensor);
 
-
-
 // sum() series will return a totally new tensor with its own raw data
 Tensor sum(const Tensor& tensor);
 Tensor sum(const Tensor& tensor, int dim, bool keep_dim = false);
@@ -61,10 +59,8 @@ Tensor unsqueeze(const Tensor& tensor, int dim);
 Tensor reshape(const Tensor& tensor, const TensorShape& shape);
 Tensor unfold(const Tensor& tensor, int dim, int size, int step = 1);
 
-// We provide a pad() operation which can be used in conv2d.
-Tensor pad2d(const Tensor& tensor, int height, int width);
-
-
+Tensor slice(const Tensor& tensor, int dim, int start, int end);
+Tensor flip(const Tensor& tensor, const std::vector<int> &dims);
 
 }  // namespace toytorch
 

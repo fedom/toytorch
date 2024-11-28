@@ -3,7 +3,7 @@
 
 This project was created as a practice exercise while I was learning about neural network with PyTorch. To deepen my understanding, I wrote some test code to mimic PyTorch's behavior. Over time, this evolved into a simple neural network framework. I made it available for anyone who wants to quickly grasp the concepts by experimenting with it. 
 
-Please note that efficiency and elegance were not prioritized. The main goal is ease of understanding. Treat it as a fun experiment and enjoy!
+Please note that efficiency and elegance were not prioritized. The main goal is ease of understanding. Treat it as a toy and enjoy!
 
 ## **Features**
 To keep it simple, I targeted only the `float` data type and `cpu` device. (Pytorch supports different data types and devices through a dispatcher mechanism which I haven't tried yet). 
@@ -20,7 +20,7 @@ Current features include:
   - gt, ge, lt, le, strict_equal, strict_allclose
     
 - **Modules**
-  - Linear
+  - Linear, Conv2d
     
 - **Activation function**
   - Sigmoid, Relu
@@ -39,7 +39,7 @@ Current features include:
   - Output backward graph in DOT format
 
 ## **Build**
-Since my environment is c++20, I used `Concept` in a random number util template. But it should be very simple to replace it if you want to build with prior version. Building unit tests need `GTest`. You can skip it by addding `-DBUILD_TESTS=OFF`.
+Since my environment is c++20, I used a bit features of it. But it should be very simple to fix it if you want to build with prior version. Building unit tests need `GTest`. You can skip it by addding `-DBUILD_TESTS=OFF`.
 
 Enter the root fold and run
 ```

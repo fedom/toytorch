@@ -5,7 +5,12 @@ namespace toytorch::autograd {
 
 Tensor shrink_broadcasted_grad(const Tensor& grad, const Tensor& target) {
 
-  TensorShape grad_shape = grad.shape();
+  Tensor tmp_grad = grad;
+  while (tmp_grad.dim() > target.dim()) {
+    tmp_grad = tmp_grad.sum(0, false);
+  }
+
+  TensorShape grad_shape = tmp_grad.shape();
   TensorShape target_shape = target.shape();
 
   std::vector<int> dims;
@@ -15,7 +20,7 @@ Tensor shrink_broadcasted_grad(const Tensor& grad, const Tensor& target) {
     }
   }
 
-  return grad.sum(dims, true);
+  return tmp_grad.sum(dims, true);
 }
 
 }  // namespace toytorch::autograd

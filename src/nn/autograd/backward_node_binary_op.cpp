@@ -30,7 +30,8 @@ Tensor AddBackward::calculate_lhs_grad(Tensor grad, Tensor lhs, Tensor rhs) {
 }
 Tensor AddBackward::calculate_rhs_grad(Tensor grad, Tensor lhs, Tensor rhs) {
   if (grad.shape() != rhs.shape()) {
-    return shrink_broadcasted_grad(grad, rhs);
+     Tensor result = shrink_broadcasted_grad(grad, rhs);
+     return result;
   }
   return grad;
 }

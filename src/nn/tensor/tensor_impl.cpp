@@ -2,16 +2,16 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include "nn/exceptions/exceptions.h"
 #include "nn/autograd/autograd.h"
-#include "nn/operations/tensor_operations.h"
-#include "nn/operations/tensor_operations.h"
+#include "nn/exceptions/exceptions.h"
 #include "nn/operations/tensor_helper.h"
+#include "nn/operations/tensor_operations.h"
+#include "nn/utils/print_utils.h"
 
 namespace toytorch {
 
 namespace {
-  bool strict_allclose_element(float a, float b, float rtol, float atol,
+bool strict_allclose_element(float a, float b, float rtol, float atol,
                              bool equal_nan) {
 
   if (std::isnan(a) || std::isnan(b)) {
@@ -23,17 +23,17 @@ namespace {
 
   return std::abs(a - b) <= atol + rtol * std::abs(b);
 }
-}
+}  // namespace
 
 using autograd::GradInfo;
 
-TensorImpl::TensorImpl(float n) {
+TensorImpl::TensorImpl(float n) : offset_(0) {
   data_ = std::make_shared<std::vector<float>>(1, n);
 }
 
 TensorImpl::TensorImpl(const TensorShape& shape, float val /* = 0*/,
-               bool requires_grad /* = false*/)
-    : shape_(shape), strides_(shape.size(), 1) {
+                       bool requires_grad /* = false*/)
+    : shape_(shape), strides_(shape.size(), 1), offset_(0) {
   int size = 1;
 
   int accum_stride = 1;
@@ -51,21 +51,23 @@ TensorImpl::TensorImpl(const TensorShape& shape, float val /* = 0*/,
 }
 
 TensorImpl::TensorImpl(const TensorShape& shape, const std::vector<float>& data,
-               bool requires_grad)
+                       bool requires_grad)
     : TensorImpl(shape, 0, requires_grad) {
 
   // update data with vector data
-  for (int i = 0; i < std::min(data_size(), data.size()); i++) {
+  for (int i = 0; i < std::min(numel(), data.size()); i++) {
+    // Since this is a constructor, we guarantee the memory is contiguous
     data_->at(i) = data[i];
   }
 }
 
 TensorImpl::TensorImpl(const TensorShape& shape, RandomGeneratorBase& gen,
-               bool requires_grad /* = false*/)
+                       bool requires_grad /* = false*/)
     : TensorImpl(shape, 0, requires_grad) {
 
   // update data with random generator
-  for (int i = 0; i < data_size(); i++) {
+  for (int i = 0; i < numel(); i++) {
+    // Since this is a constructor, we guarantee the memory is contiguous
     data_->at(i) = gen();
   }
 }
@@ -74,7 +76,8 @@ TensorImpl::TensorImpl(const TensorImpl& other) {
   shape_ = other.shape_;
   strides_ = other.strides_;
   data_ = other.data_;
-  // requires_grad_ = other.requires_grad_;
+  offset_ = other.offset_;
+
   grad_info_ = other.grad_info_;
 }
 
@@ -82,6 +85,7 @@ TensorImpl::TensorImpl(TensorImpl&& other) {
   shape_ = std::move(other.shape_);
   strides_ = std::move(other.strides_);
   data_ = std::move(other.data_);
+  offset_ = other.offset_;
 
   // requires_grad_ = other.requires_grad_;
   grad_info_ = std::move(other.grad_info_);
@@ -91,6 +95,7 @@ TensorImpl& TensorImpl::operator=(const TensorImpl& other) {
   shape_ = other.shape_;
   strides_ = other.strides_;
   data_ = other.data_;
+  offset_ = other.offset_;
 
   // requires_grad_ = other.requires_grad_;
   grad_info_ = other.grad_info_;
@@ -103,29 +108,41 @@ TensorImpl& TensorImpl::operator=(TensorImpl&& other) {
   strides_ = std::move(other.strides_);
   data_ = std::move(other.data_);
   grad_info_ = std::move(other.grad_info_);
-  // requires_grad_ = other.requires_grad_;
+  offset_ = other.offset_;
 
   return *this;
 }
 
 float& TensorImpl::at(const TensorIndices& indices) {
   int index = compute_flat_index(indices);
-  return data_->at(index);
+  return raw_data()[index];
 }
 
 float TensorImpl::at(const TensorIndices& indices) const {
   int index = compute_flat_index(indices);
-  return data_->at(index);
+  return raw_data()[index];
 }
 
 TensorImpl TensorImpl::deep_copy() const {
-  TensorImpl result(*this);
-
-  result.data_ = std::make_shared<std::vector<float>>(*data_);
+  TensorImpl result(shape_);
 
   // Deep copy doesn't copy grad_info_. Instead, we shared the instance
   // with original one.
   result.grad_info_ = grad_info_;
+
+  if (is_contiguous()) {
+    std::copy(raw_data(), raw_data() + numel(), result.raw_data());
+    return result;
+  }
+
+  TensorIndices indices(dim(), 0);
+  int i = 0;
+  do {
+    // result is guaranteed to be contiguous
+    result[i++] = this->at(indices);
+  } while (TensorHelper::increment_indices(indices, shape_));
+
+  // TODO(Leo) : we should insert this operation into backward graph
 
   return result;
 }
@@ -138,14 +155,21 @@ TensorImpl TensorImpl::detach() const {
 }
 
 void TensorImpl::fill(const std::vector<float>& data) {
-  if (data_size() != data.size()) {
+  if (numel() != data.size()) {
     throw ExceptionInvalidArgument("Data size doesn't match with tensor size");
   }
 
-  if (!is_contiguous()) {
-    throw ExceptionNotImpl("fill for uncontinuous memory format not supported yet");
+  if (is_contiguous()) {
+    std::copy(data.begin(), data.end(), raw_data());
+    return;
+    //throw ExceptionNotImpl("fill for uncontinuous memory format not supported yet");
   }
-  std::copy(data.begin(), data.end(), data_->begin());
+
+  TensorIndices indices(dim(), 0);
+  int i = 0;
+  do {
+    this->at(indices) = data.at(i++);
+  } while (TensorHelper::increment_indices(indices, shape()));
 }
 
 bool TensorImpl::strict_equal(const TensorImpl& rhs) const {
@@ -154,7 +178,7 @@ bool TensorImpl::strict_equal(const TensorImpl& rhs) const {
   }
   // For scalars
   if (dim() == 0) {
-    return (*this)[0] == rhs[0];
+    return (*this)[offset_] == rhs[rhs.offset_];
   }
 
   TensorIndices indices(dim(), 0);
@@ -169,8 +193,8 @@ bool TensorImpl::strict_equal(const TensorImpl& rhs) const {
   return true;
 }
 
-bool TensorImpl::strict_allclose(const TensorImpl& rhs, float rtol,
-                     float atol, bool equal_nan) const {
+bool TensorImpl::strict_allclose(const TensorImpl& rhs, float rtol, float atol,
+                                 bool equal_nan) const {
   if (shape() != rhs.shape()) {
     return false;
   }
@@ -201,56 +225,13 @@ bool TensorImpl::operator!=(const TensorImpl& other) const {
   return !(*this == other);
 }
 
-// Tensor Tensor::transpose() const {
-//   return toynn::transpose(*this);
-// }
-// Tensor Tensor::transpose(int dim1, int dim2) const {
-//   return toynn::transpose(*this, dim1, dim2);
-// }
-// Tensor Tensor::sum() const {
-//   return toynn::sum(*this);
-// }
-// Tensor Tensor::sum(int dim, bool keep_dim) const {
-//   return toynn::sum(*this, dim, keep_dim);
-// }
-// Tensor Tensor::sum(const std::vector<int>& dims, bool keep_dim) const {
-//   return toynn::sum(*this, dims, keep_dim);
-// }
-// Tensor Tensor::take(int dim, int index, bool keep_dim) const {
-//   return toynn::take(*this, dim, index, keep_dim);
-// }
-
-// void TensorImpl::backward() {
-//   assert(this->requires_grad());
-//   autograd::backward(*this);
-// }
-
 void TensorImpl::print() const {
   if (is_scalar()) {
     std::cout << *(raw_data()) << std::endl;
     return;
   }
-  std::cout << print_level(0, 0) << std::endl;
+  std::cout << print_level(offset_, 0) << std::endl;
 }
-
-// std::string Tensor::print_level(int flat_index_base, int layer) const {
-
-//   if (layer == dim()) {  // last layer
-//     return std::to_string(data_->at(flat_index_base));
-//   }
-
-//   // intermediate layers
-//   std::ostringstream ss;
-//   ss << "[";
-//   std::string sep = "";
-//   for (int i = 0; i < shape_[layer]; i++) {
-//     ss << sep;
-//     ss << print_level(flat_index_base + strides_[layer] * i, layer + 1);
-//     sep = ",";
-//   }
-//   ss << "]";
-//   return ss.str();
-// }
 
 std::string TensorImpl::print_level(int flat_index_base, int layer) const {
 
@@ -278,6 +259,14 @@ std::string TensorImpl::print_level(int flat_index_base, int layer) const {
   }
   ss << "]";
   return ss.str();
+}
+
+void TensorImpl::print_shape() const {
+  std::cout << shape_ << std::endl;
+}
+
+void TensorImpl::print_strides() const {
+  std::cout << strides_ << std::endl;
 }
 
 }  // namespace toytorch

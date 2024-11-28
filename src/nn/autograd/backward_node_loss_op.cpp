@@ -16,7 +16,7 @@ Tensor SmoothL1LossBackward::calculate_lhs_grad(Tensor grad, Tensor lhs,
     grad = grad * ones(lhs.shape());
   } else if (rt_ == ReductionType::Mean) {
     assert(grad.is_scalar());
-    grad = grad * ones(lhs.shape()) / lhs.data_size();
+    grad = grad * ones(lhs.shape()) / lhs.numel();
   } else if (rt_ == ReductionType::None) {
     assert(grad.shape() == lhs.shape());
   } else {
@@ -43,7 +43,7 @@ Tensor SmoothL1LossBackward::calculate_rhs_grad(Tensor grad, Tensor lhs,
     grad = grad * ones(lhs.shape());
   } else if (rt_ == ReductionType::Mean) {
     assert(grad.is_scalar());
-    grad = grad * ones(lhs.shape()) / lhs.data_size();
+    grad = grad * ones(lhs.shape()) / lhs.numel();
   } else if (rt_ == ReductionType::None) {
     assert(grad.shape() == lhs.shape());
   } else {

@@ -29,8 +29,7 @@ Tensor Tensor::view(const TensorShape& new_shape) const {
   }
 
   // Since is_contiguous is true, the product of shape dims equals to data_size()
-  int total = data_size();
-
+  int total = numel();
 
   int minus_1_index = -1;
   int new_total = 1;
@@ -89,7 +88,7 @@ Tensor Tensor::expand(const TensorShape& new_shape) const {
   }
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET(expand, {*this});
+  BACKWARD_NOT_IMPLEMENTED_YET("expand", {*this});
 
   return result;
 }
@@ -130,6 +129,11 @@ Tensor Tensor::select(int dim, int index, bool keep_dim) const {
   return toytorch::select(*this, dim, index, keep_dim);
 }
 
+Tensor Tensor::slice(int dim, int start, int end) const {
+  return toytorch::slice(*this, dim, start, end);
+}
+
+
 void Tensor::backward() {
   assert(this->requires_grad());
   autograd::backward(*this);
@@ -141,7 +145,7 @@ void Tensor::add_(const Tensor& other) {
   TensorHelper::elementwise_binary_op_inplace(*this, other, TensorHelper::EWBOP_ADD);
 
   // TODO(Leo) : 
-  BACKWARD_NOT_IMPLEMENTED_YET(add_, *this, other);
+  BACKWARD_NOT_IMPLEMENTED_YET("add_", *this, other);
 
 }
 
@@ -150,7 +154,7 @@ void Tensor::sub_(const Tensor& other) {
   TensorHelper::elementwise_binary_op_inplace(*this, other, TensorHelper::EWBOP_SUB);
 
   // TODO(Leo) : 
-  BACKWARD_NOT_IMPLEMENTED_YET(sub_, *this, other);
+  BACKWARD_NOT_IMPLEMENTED_YET("sub_", *this, other);
 }
 
 void Tensor::mul_(const Tensor& other) {
@@ -158,7 +162,7 @@ void Tensor::mul_(const Tensor& other) {
   TensorHelper::elementwise_binary_op_inplace(*this, other, TensorHelper::EWBOP_MUL);
 
   // TODO(Leo) : 
-  BACKWARD_NOT_IMPLEMENTED_YET(mul_, *this, other);
+  BACKWARD_NOT_IMPLEMENTED_YET("mul_", *this, other);
 
 }
 
@@ -167,7 +171,7 @@ void Tensor::div_(const Tensor& other) {
   TensorHelper::elementwise_binary_op_inplace(*this, other, TensorHelper::EWBOP_DIV);
 
   // TODO(Leo) : 
-  BACKWARD_NOT_IMPLEMENTED_YET(div_, *this, other);
+  BACKWARD_NOT_IMPLEMENTED_YET("div_", *this, other);
 }
 
 }  // namespace toytorch

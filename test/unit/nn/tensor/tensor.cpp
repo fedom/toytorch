@@ -3,6 +3,7 @@
 #include "nn/operations/tensor_helper.h"
 #include "nn/operations/tensor_operations.h"
 #include "nn/exceptions/exceptions.h"
+#include "nn/utils/print_utils.h"
 #include <gtest/gtest.h>
 
 using namespace toytorch;
@@ -47,12 +48,13 @@ TEST(TensorTest, FillTensor) {
   EXPECT_NO_THROW(t1.fill(val));
   EXPECT_TRUE(memcmp(t1.raw_data(), val.data(), val.size()) == 0);
 
-  Tensor t2({2, 3});
-  EXPECT_NO_THROW(t2.fill(val));
-  EXPECT_TRUE(memcmp(t1.raw_data(), val.data(), val.size()) == 0);
+  Tensor t3 = t1.transpose();
+  ASSERT_FALSE(t3.is_contiguous());
 
-  Tensor t3 = t2.transpose();
-  EXPECT_THROW(t3.fill(val), ExceptionNotImpl);
+  EXPECT_TRUE(t3 == Tensor({2, 3}, {1, 3, 5, 2, 4, 6}));
+
+  EXPECT_NO_THROW(t3.fill(val));
+  EXPECT_TRUE(t3 == Tensor({2, 3}, {1, 2, 3, 4, 5, 6}));
 }
 
 TEST(TensorTest, CompareTensorDiffShape) {
