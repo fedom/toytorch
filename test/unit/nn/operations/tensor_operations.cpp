@@ -486,7 +486,7 @@ TEST(TensorOperationsTest, flip) {
   Tensor t = arange(0, 120).view({2, 3, 4, 5});
 
   Tensor result = flip(t, {1, 2});
-  result.print();
+  // result.print();
 
   EXPECT_TRUE(
       result ==
@@ -503,7 +503,7 @@ TEST(TensorOperationsTest, flip) {
            67,  68,  69,  60,  61,  62,  63,  64}));
 
   result = flip(t, {2, 3});
-  result.print();
+  // result.print();
 
   EXPECT_TRUE(
       result ==
@@ -520,7 +520,7 @@ TEST(TensorOperationsTest, flip) {
            107, 106, 105, 104, 103, 102, 101, 100}));
 
   result = flip(t, {0, 1, 2, 3});
-  result.print();
+  // result.print();
 
   EXPECT_TRUE(
       result ==
