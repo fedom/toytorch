@@ -120,24 +120,22 @@ Tensor pad2d(const Tensor& input, int top, int bottom, int left, int right) {
   }
 
   TensorShape result_shape(input.shape());
-  int height_index = result_shape.size() - 2;
-  int width_index = result_shape.size() - 1;
-
-  result_shape[height_index] = result_shape[height_index] + top + bottom;
-  result_shape[width_index] = result_shape[width_index] + left + right;
+  result_shape[-2] = result_shape[-2] + top + bottom;
+  result_shape[-1] = result_shape[-1] + left + right;
 
   Tensor result(result_shape);
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker result_walker(result_shape, result_indices);
+  result_walker.narrow_to_index_range(-2, top, input.shape()[-2]);
+  result_walker.narrow_to_index_range(-1, left, input.shape()[-1]);
 
-  TensorIndices read_indices(input.dim(), 0);
-  const TensorShape& input_shape = input.shape();
+  TensorIndices read_indices = input.get_indices();
+  TensorIndicesWalker read_walker(input.shape(), read_indices);
+
   do {
-    TensorIndices write_indices(read_indices);
-    write_indices[write_indices.size() - 2] += top;
-    write_indices[write_indices.size() - 1] += left;
+    result.at(result_indices) = input.at(read_indices);
 
-    result.at(write_indices) = input.at(read_indices);
-
-  } while (TensorHelper::increment_indices(read_indices, input_shape));
+  } while (read_walker.step() && result_walker.step());
 
   UPDATE_BACKWARD_GRAPH_4(result, Pad2dBackward, top, bottom, left, right, input);
 

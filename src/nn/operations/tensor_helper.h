@@ -44,36 +44,6 @@ class TensorHelper {
                                 Tensor& tensor_c,
                                 int num_skip_rightmost_dim = 0);
 
-  // static TensorIndices merge_indices(const TensorIndices& indices1,
-  //                                    const TensorIndices& indices2) {
-  //   TensorIndices result_indices(indices1);
-  //   result_indices.insert(result_indices.end(), indices2.begin(),
-  //                         indices2.end());
-  //   return result_indices;
-  // }
-
-  /**
-   * @brief 
-   * 
-   * @param indices 
-   * @param shape 
-   * @return true if indices hasn't reach end
-   * @return false if indices reaches end
-   */
-  static bool increment_indices(TensorIndices& indices,
-                                const TensorShape& shape) {
-    assert(indices.size() == shape.size());
-
-    for (int i = shape.size() - 1; i >= 0; i--) {
-      if (++indices[i] < shape[i]) {
-        return true;
-      }
-      indices[i] = 0;
-    }
-
-    return false;
-  }
-
   enum ElementwiseUnaryOperation {
     EWUOP_EXP,
     EWUOP_NEG,

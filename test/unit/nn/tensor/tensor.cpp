@@ -156,8 +156,7 @@ TEST(TensorTest, SumNotKeepDimScalar) {
   Tensor t({6}, {1,2,3,4,5,6});
 
   Tensor a = t.sum(0);
-  a.print();
-  a.print_shape();
+
   EXPECT_TRUE(t.sum(0) == Tensor(21));
   EXPECT_TRUE(t.sum(0).is_scalar());
 }

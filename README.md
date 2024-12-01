@@ -93,7 +93,10 @@ Here's the backward graph printed.
 
 ## **What to do next**
 
-As you can see, we only have a skeleton here. We are missing a dataloader, a model saver, and most of the necessary operations required to support even basic use cases. After becoming familiar with it, you can try adding more features as you like. You can aim to support the [MNIST](https://github.com/pytorch/examples/blob/main/cpp/mnist/mnist.cpp) example as a starting point.
+As you can see, we only have a skeleton here. We are missing a dataloader, a model saver, and most of the necessary operations required to support even basic use cases. After becoming familiar with it, you can try adding more features as you like. You can aim to support the [MNIST](https://github.com/pytorch/examples/blob/main/cpp/mnist/mnist.cpp) example as a starting point. Things you can do:
+- Adding more operations
+- Improving the performance by adding multithread, OpenMP or BLAS
+- Adding python binding
 
 ## **Resources**
 
