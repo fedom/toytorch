@@ -113,6 +113,16 @@ TensorImpl& TensorImpl::operator=(TensorImpl&& other) {
   return *this;
 }
 
+// float& TensorImpl::at(const TensorIndices& indices) {
+//   int index = compute_flat_index(indices);
+//   return raw_data()[index];
+// }
+
+// float TensorImpl::at(const TensorIndices& indices) const {
+//   int index = compute_flat_index(indices);
+//   return raw_data()[index];
+// }
+
 float& TensorImpl::at(const TensorIndices& indices) {
   int index = compute_flat_index(indices);
   return raw_data()[index];
@@ -135,12 +145,14 @@ TensorImpl TensorImpl::deep_copy() const {
     return result;
   }
 
-  TensorIndices indices(dim(), 0);
+  TensorIndices indices = get_indices();
+  TensorIndicesWalker walker(shape_, indices);
+
   int i = 0;
   do {
     // result is guaranteed to be contiguous
     result[i++] = this->at(indices);
-  } while (TensorHelper::increment_indices(indices, shape_));
+  } while (walker.step());
 
   // TODO(Leo) : we should insert this operation into backward graph
 
@@ -165,11 +177,12 @@ void TensorImpl::fill(const std::vector<float>& data) {
     //throw ExceptionNotImpl("fill for uncontinuous memory format not supported yet");
   }
 
-  TensorIndices indices(dim(), 0);
+  TensorIndices indices = get_indices();
+  TensorIndicesWalker walker(shape(), indices);
   int i = 0;
   do {
     this->at(indices) = data.at(i++);
-  } while (TensorHelper::increment_indices(indices, shape()));
+  } while (walker.step());
 }
 
 bool TensorImpl::strict_equal(const TensorImpl& rhs) const {
@@ -181,14 +194,14 @@ bool TensorImpl::strict_equal(const TensorImpl& rhs) const {
     return (*this)[offset_] == rhs[rhs.offset_];
   }
 
-  TensorIndices indices(dim(), 0);
+  TensorIndices indices = get_indices();
+  TensorIndicesWalker walker(shape(), indices);
 
   do {
     if (at(indices) != rhs.at(indices)) {
       return false;
     }
-
-  } while (TensorHelper::increment_indices(indices, shape()));
+  } while (walker.step());
 
   return true;
 }
@@ -204,7 +217,8 @@ bool TensorImpl::strict_allclose(const TensorImpl& rhs, float rtol, float atol,
     strict_allclose_element((*this)[0], rhs[0], rtol, atol, equal_nan);
   }
 
-  TensorIndices indices(dim(), 0);
+  TensorIndices indices = get_indices();
+  TensorIndicesWalker walker(shape(), indices);
 
   do {
     if (!strict_allclose_element(at(indices), rhs.at(indices), rtol, atol,
@@ -212,7 +226,7 @@ bool TensorImpl::strict_allclose(const TensorImpl& rhs, float rtol, float atol,
       return false;
     }
 
-  } while (TensorHelper::increment_indices(indices, shape()));
+  } while (walker.step());
 
   return true;
 }

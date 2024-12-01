@@ -33,7 +33,7 @@ Tensor arange(float start, float end, float step, bool requires_grad) {
     values.push_back(i);
   }
 
-  return Tensor({static_cast<int>(values.size())}, values, requires_grad);
+  return Tensor(std::vector<int>({static_cast<int>(values.size())}), values, requires_grad);
 }
 
 

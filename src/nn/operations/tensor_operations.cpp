@@ -1,4 +1,5 @@
 #include "nn/operations/tensor_operations.h"
+#include <iostream>
 #include "nn/autograd/autograd.h"
 #include "nn/autograd/backward_node_activation_op.h"
 #include "nn/autograd/backward_node_binary_op.h"
@@ -7,15 +8,11 @@
 #include "nn/exceptions/exceptions.h"
 #include "nn/operations/tensor_helper.h"
 #include "nn/utils/print_utils.h"
-#include <iostream>
 
 namespace toytorch {
 
-
-inline void normalize_dim(const Tensor &t, int &dim) {
-  if (dim < 0) {
-    dim = t.dim() + dim;
-  }
+inline int normalize_dim(const Tensor& t, int dim) {
+  return dim < 0 ? (t.dim() + dim) : dim;
 }
 
 using autograd::Edge;
@@ -125,8 +122,8 @@ Tensor unsqueeze(const Tensor& tensor, int dim) {
     stride *= tensor.shape()[i];
   }
 
-  result.strides().insert(result.strides().begin() + dim, stride);
-  result.shape().insert(result.shape().begin() + dim, 1);
+  result.strides().insert(dim, stride);
+  result.shape().insert(dim, 1);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
   BACKWARD_NOT_IMPLEMENTED_YET("unsqueeze", tensor);
@@ -149,8 +146,8 @@ Tensor squeeze(const Tensor& tensor, int dim) {
 
   Tensor result(tensor.meta_copy());
 
-  result.shape().erase(result.shape().begin() + dim);
-  result.strides().erase(result.strides().begin() + dim);
+  result.shape().remove(dim);
+  result.strides().remove(dim);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
   BACKWARD_NOT_IMPLEMENTED_YET("squeeze", tensor);
@@ -180,7 +177,6 @@ Tensor unfold(const Tensor& tensor, int dim, int size, int step) {
   result.shape()[dim] = cur_dim_new_len;
   result.strides()[dim] = cur_dim_new_stride;
   result.shape().push_back(extended_dim_len);
-  ;
   result.strides().push_back(extended_dim_stride);
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
@@ -222,36 +218,25 @@ Tensor cat(const std::vector<Tensor>& tensors, int dim) {
     }
   }
 
-  TensorShape shape_first_part;
-  for (int i = 0; i < dim; i++) {
-    shape_first_part.push_back(tensors[0].shape()[i]);
-  }
-
   Tensor result(result_shape);
 
-  TensorIndices result_indices(result_shape.size(), 0);
-  TensorIndices indices_first_part(dim, 0);
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker result_walker(result_shape, result_indices);
 
-  do {
-    for (auto& tensor : tensors) {
-      TensorShape read_shape_second_part(tensor.shape().begin() + dim,
-                                         tensor.shape().end());
-      TensorIndices read_indices_second_part(read_shape_second_part.size(), 0);
+  int next_start_index = 0;
+  for (auto& tensor : tensors) {
+    TensorIndices tensor_indices = tensor.get_indices();
+    TensorIndicesWalker tensor_walker(tensor.shape(), tensor_indices);
 
-      do {
-        TensorIndices reading_indices = TensorHelper::merge_indices(
-            indices_first_part, read_indices_second_part);
+    result_walker.narrow_to_index_range(dim, next_start_index, tensor.shape()[dim]);
+    next_start_index += tensor.shape()[dim];
+    do
+    {
+      result.at(result_indices) = tensor.at(tensor_indices);
+      result_walker.step();
 
-        result.at(result_indices) = tensor.at(reading_indices);
-
-        TensorHelper::increment_indices(result_indices, result_shape);
-
-      } while (TensorHelper::increment_indices(read_indices_second_part,
-                                               read_shape_second_part));
-    }
-
-  } while (
-      TensorHelper::increment_indices(indices_first_part, shape_first_part));
+    } while (tensor_walker.step());
+  }
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
   BACKWARD_NOT_IMPLEMENTED_YET_VEC("cat", tensors);
@@ -329,47 +314,25 @@ Tensor select(const Tensor& tensor, int axis, int index,
   if (axis >= tensor.dim()) {
     throw ExceptionInvalidArgument("dim is invalid");
   }
-  TensorShape shape_first_part;
-  TensorShape shape_second_part;
 
-  for (int i = 0; i < axis; i++) {
-    shape_first_part.push_back(tensor.shape()[i]);
-  }
-  for (int i = axis + 1; i < tensor.dim(); i++) {
-    shape_second_part.push_back(tensor.shape()[i]);
-  }
+  TensorShape result_shape = tensor.shape();
 
-  TensorShape result_shape(shape_first_part);
   if (keep_dim) {
-    result_shape.push_back(1);
+    result_shape[axis] = 1;
+  } else {
+    result_shape.remove(axis);
   }
-
-  result_shape.insert(result_shape.end(), shape_second_part.begin(),
-                      shape_second_part.end());
-
+  
   Tensor result(result_shape);
 
-  TensorIndices result_indices(result_shape.size(), 0);
+  TensorIndices read_indices = tensor.get_indices();
+  TensorIndicesWalker read_walker(tensor.shape(), read_indices);
+  read_walker.narrow_to_index(axis, index);
 
-  TensorIndices indices_first_part(axis, 0);
-  TensorIndices indices_second_part(tensor.dim() - 1 - axis, 0);
-
+  int i = 0;
   do {
-
-    TensorIndices new_indices_first_part = indices_first_part;
-    new_indices_first_part.push_back(index);
-
-    do {
-      TensorIndices reading_indices = TensorHelper::merge_indices(
-          new_indices_first_part, indices_second_part);
-
-      result.at(result_indices) = tensor.at(reading_indices);
-      TensorHelper::increment_indices(result_indices, result_shape);
-
-    } while (TensorHelper::increment_indices(indices_second_part,
-                                             shape_second_part));
-  } while (
-      TensorHelper::increment_indices(indices_first_part, shape_first_part));
+    result.at_raw(i++) = tensor.at(read_indices);
+  } while (read_walker.step());
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
   return result;
@@ -460,11 +423,11 @@ Tensor transpose(const Tensor& tensor) {
 
 Tensor transpose(const Tensor& tensor, int dim1, int dim2) {
 
-  normalize_dim(tensor, dim1);
-  normalize_dim(tensor, dim2);
+  dim1 = normalize_dim(tensor, dim1);
+  dim2 = normalize_dim(tensor, dim2);
 
   if (!(dim1 >= 0 && dim1 < tensor.dim() && dim2 >= 0 && dim2 < tensor.dim())) {
-    throw ExceptionTensorShapeIncompatible();
+    throw ExceptionInvalidArgument("transpose args dim out of range");
   }
 
   // We will modify the result's meta info, so we need to make a meta copy
@@ -506,43 +469,31 @@ Tensor slice(const Tensor& tensor, int dim, int start, int end) {
 }
 
 Tensor flip(const Tensor& input, const std::vector<int>& dims) {
-  TensorShape shape = input.shape();
   Tensor result = input.deep_copy();
 
+  TensorIndices input_indices = input.get_indices();
+  TensorIndices result_indices = result.get_indices();
+
+  TensorIndicesWalker input_walker(input.shape(), input_indices);
+  TensorIndicesWalker result_walker(result.shape(), result_indices);
+
   for (auto dim : dims) {
-    if (dim < 0) {
-      // transform to positive index
-      dim = result.dim() + dim;
+    dim = normalize_dim(input, dim);
+    
+    for (int i = 0; i < input.shape()[dim] / 2; i++) {
+      result_walker.narrow_to_index(dim, i);
+      do
+      {
+        float &a = result.at(result_indices);
+        result_indices[dim] = result.shape()[dim] - 1 - i;
+        float &b = result.at(result_indices);
+        result_indices[dim] = i;
+        std::swap(a, b);
+      } while (result_walker.step());
+
+      input_walker.reset();
+      result_walker.reset();
     }
-    assert(dim >= 0 && dim < result.dim());
-
-    TensorShape shape_first_part(shape.begin(), shape.begin() + dim);
-    TensorIndices indices_first_part(shape_first_part.size(), 0);
-
-    TensorShape shape_second_part(shape.begin() + dim + 1, shape.end());
-    TensorIndices indices_second_part(shape_second_part.size(), 0);
-
-    do {
-
-      for (int i = 0; i < shape[dim] / 2; i++) {
-
-        TensorIndices i1 = indices_first_part;
-        i1.push_back(i);
-        TensorIndices i2 = indices_first_part;
-        i2.push_back(shape[dim] - 1 - i);
-
-        do {
-
-          TensorIndices index1 = TensorHelper::merge_indices(i1, indices_second_part);
-          TensorIndices index2 = TensorHelper::merge_indices(i2, indices_second_part);
-
-          std::swap(result.at(index1), result.at(index2));
-        } while (TensorHelper::increment_indices(indices_second_part,
-                                                 shape_second_part));
-      }
-
-    } while (
-        TensorHelper::increment_indices(indices_first_part, shape_first_part));
   }
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)

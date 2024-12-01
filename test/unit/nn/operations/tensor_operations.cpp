@@ -251,6 +251,19 @@ TEST(TensorOperationsTest, CatBackwardThrow) {
   EXPECT_THROW(cat({t1, t2}, 0), ExceptionOpBackwardNotImplemented);
 }
 
+TEST(TensorOperationsTest, transpose) {
+  Tensor t1 = arange(0, 24).view({2, 3, 4});
+
+  EXPECT_TRUE(
+      t1.transpose(0, 1) ==
+      Tensor({3, 2, 4}, {0,  1,  2,  3,  12, 13, 14, 15, 4,  5,  6,  7,
+                         16, 17, 18, 19, 8,  9,  10, 11, 20, 21, 22, 23}));
+  EXPECT_TRUE(
+      t1.transpose(2, 1) ==
+      Tensor({2, 4, 3}, {0,  4,  8,  1,  5,  9,  2,  6,  10, 3,  7,  11,
+                         12, 16, 20, 13, 17, 21, 14, 18, 22, 15, 19, 23}));
+}
+
 TEST(TensorOperationsTest, squeeze) {
   Tensor t1 = ones({2, 3, 3});
   Tensor t2 = ones({2, 1, 3});

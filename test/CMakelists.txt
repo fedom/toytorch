@@ -1,5 +1,6 @@
 set(TEST_SRC unit/nn/tensor/tensor.cpp
              unit/nn/tensor/tensor_creator.cpp
+             unit/nn/tensor/tensor_indices_walker.cpp
              unit/nn/operations/tensor_operations.cpp
              unit/nn/operations/tensor_helper.cpp
              unit/nn/operations/convolution.cpp
@@ -11,6 +12,7 @@ set(TEST_SRC unit/nn/tensor/tensor.cpp
              unit/nn/modules/module.cpp
              unit/nn/modules/conv2d.cpp
              unit/nn/debug/debug_utils.cpp
+             unit/nn/utils/extended_vector.cpp
              unit/nn/optim/sgd.cpp
              unit/nn/autograd/autograd.cpp
              unit/nn/autograd/backward_node_convolution_op.cpp

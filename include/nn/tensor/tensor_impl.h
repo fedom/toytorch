@@ -3,6 +3,7 @@
 #include <cassert>
 #include <functional>
 #include "nn/autograd/tensor_grad_info.h"
+#include "nn/tensor/tensor_indices_walker.h"
 #include "nn/tensor/types.h"
 #include "random_generator.h"
 
@@ -33,9 +34,14 @@ class TensorImpl {
 
   TensorImpl deep_copy() const;
 
+  TensorIndices get_indices() const { return TensorIndices(shape_.size(), 0); }
+
   // Access operators
   float& at(const TensorIndices& indices);
   float at(const TensorIndices& indices) const;
+
+  inline float& at_raw(int index) { return data_->at(index); }
+  inline float at_raw(int index) const { return data_->at(index); }
 
   inline float& operator[](int index) { return data_->at(index); }
   inline float operator[](int index) const { return data_->at(index); }
@@ -86,7 +92,12 @@ class TensorImpl {
 
   // inline size_t data_size() const { return data_->size(); }
   inline size_t numel() const {
-    size_t n = 1;
+    // if (shape_.empty()) {
+    //   return 0;
+    // }
+
+    // scalar also contain 1 element
+    int n = 1;
     for (auto i : shape_) {
       n *= i;
     }
@@ -146,6 +157,7 @@ class TensorImpl {
   void print() const;
   void print_shape() const;
   void print_strides() const;
+  size_t raw_data_size() const {return data_->size();}
 
  private:
   std::string print_level(int base_index, int layer) const;

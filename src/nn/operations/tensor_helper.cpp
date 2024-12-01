@@ -75,9 +75,8 @@ bool TensorHelper::are_tensors_broadcastable(
   std::vector<TensorShape> shapes;
   for (auto iter = tensors.begin(); iter != tensors.end(); iter++) {
     if ((*iter)->shape().size() < max_dim) {
-      TensorShape shape(max_dim - (*iter)->shape().size(), 1);
-      shape.insert(shape.end(), (*iter)->shape().begin(),
-                   (*iter)->shape().end());
+
+      TensorShape shape = (*iter)->shape().expand_left_to_copy(max_dim);
       shapes.push_back(std::move(shape));
     } else {
       shapes.push_back((*iter)->shape());
@@ -121,13 +120,8 @@ void TensorHelper::broadcast_tensors(const std::vector<Tensor*>& tensors,
   }
 
   for (auto& tensor : tensors) {
-    TensorShape& cur_tensor_shape = tensor->shape();
-    TensorShape& cur_tensor_strides = tensor->strides();
-
-    cur_tensor_shape.insert(cur_tensor_shape.begin(),
-                            max_dim - cur_tensor_shape.size(), 1);
-    cur_tensor_strides.insert(cur_tensor_strides.begin(),
-                              max_dim - cur_tensor_strides.size(), 0);
+    tensor->shape().expand_left_to(max_dim, 1);
+    tensor->strides().expand_left_to(max_dim, 0);
   }
 
   for (int i = max_dim - 1 - num_skip_rightmost_dim; i >= 0; i--) {
@@ -238,15 +232,16 @@ Tensor TensorHelper::elementwise_binary_op(const Tensor& tensor_a,
 
   broadcast_tensors(broadcasted_tensor_a, broadcasted_tensor_b, 0);
 
-  TensorShape result_shape(broadcasted_tensor_a.shape());
-  Tensor result(result_shape);
-  TensorIndices result_indices(result_shape.size(), 0);
+  Tensor result(broadcasted_tensor_a.shape());
+
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker walker(result.shape(), result_indices);
   do {
     result.at(result_indices) =
         apply_binary_op(op, broadcasted_tensor_a.at(result_indices),
                         broadcasted_tensor_b.at(result_indices));
 
-  } while (increment_indices(result_indices, result_shape));
+  } while (walker.step());
 
   return result;
 }
@@ -271,14 +266,15 @@ void TensorHelper::elementwise_binary_op_inplace(
         "operation");
   }
 
-  TensorShape result_shape = tensor_a.shape();
-  TensorIndices result_indices(result_shape.size(), 0);
-  do {
-    tensor_a.at(result_indices) =
-        apply_binary_op(op, tensor_a.at(result_indices),
-                        broadcasted_tensor_b.at(result_indices));
+  TensorIndices indices = tensor_a.get_indices();
+  TensorIndicesWalker walker(tensor_a.shape(), indices);
 
-  } while (increment_indices(result_indices, result_shape));
+  do {
+    tensor_a.at(indices) =
+        apply_binary_op(op, tensor_a.at(indices),
+                        broadcasted_tensor_b.at(indices));
+
+  } while (walker.step());
 }
 
 float TensorHelper::apply_ternary_op(ElementwiseTernaryOperation op, float a,
@@ -304,16 +300,16 @@ Tensor TensorHelper::elementwise_ternary_op(const Tensor& tensor_a,
   broadcast_tensors(broadcasted_tensor_a, broadcasted_tensor_b,
                     broadcasted_tensor_c, 0);
 
-  TensorShape result_shape(broadcasted_tensor_a.shape());
-  Tensor result(result_shape);
-  TensorIndices result_indices(result_shape.size(), 0);
+  Tensor result(broadcasted_tensor_a.shape());
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker walker(result.shape(), result_indices);
   do {
     result.at(result_indices) =
         apply_ternary_op(op, broadcasted_tensor_a.at(result_indices),
                          broadcasted_tensor_b.at(result_indices),
                          broadcasted_tensor_c.at(result_indices));
 
-  } while (increment_indices(result_indices, result_shape));
+  } while (walker.step());
 
   return result;
 }

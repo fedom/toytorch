@@ -17,7 +17,7 @@ class Tensor {
   // for 0-dimensional scalar tensor
   Tensor(float n) : impl_(std::make_shared<TensorImpl>(n)) {};  
 
-  Tensor(const TensorShape& shape, float val = 0,
+  explicit Tensor(const TensorShape& shape, float val = 0,
          bool requires_grad = false) : impl_(std::make_shared<TensorImpl>(shape, val, requires_grad)) {}
   Tensor(const TensorShape& shape, const std::vector<float>& data,
          bool requires_grad = false) : impl_(std::make_shared<TensorImpl>(shape, data, requires_grad)) {}
@@ -39,6 +39,9 @@ class Tensor {
   float& at(const TensorIndices& indices) { return impl_->at(indices); }
   float at(const TensorIndices& indices) const { return impl_->at(indices); }
 
+  float& at_raw(int index) { return impl_->at_raw(index); }
+  float at_raw(int index) const { return impl_->at_raw(index); }
+
   inline float& operator[](int index) { return (*impl_)[index]; }
   inline float operator[](int index) const { return (*impl_)[index]; }
 
@@ -51,11 +54,16 @@ class Tensor {
   inline int offset() const {return impl_->offset();}
   inline void set_offset(int offset) {impl_->set_offset(offset);}
 
+
+
   inline int dim() const { return impl_->dim(); }
   inline int dim(int index) const {return impl_->dim(index);}
   inline size_t numel() const { return impl_->numel(); }
   inline bool is_scalar() const { return impl_->is_scalar(); }
   inline bool is_contiguous() const {return impl_->is_contiguous();}
+
+  TensorIndices get_indices() const {return impl_->get_indices();}
+
 
   std::string name() const {return "";}
 
@@ -143,6 +151,8 @@ class Tensor {
   void print() const { impl_->print(); }
   void print_shape() const { impl_->print_shape(); }
   void print_stride() const { impl_->print_strides(); }
+  size_t raw_data_size() const {return impl_->raw_data_size();}
+
 
   uintptr_t identity() const {return reinterpret_cast<uintptr_t>(impl_.get());}
 

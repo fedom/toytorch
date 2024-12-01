@@ -240,11 +240,3 @@ TEST(TensorHelperTest, IncrementIndices) {
 
   EXPECT_FALSE(TensorHelper::increment_indices(indices, shape));
 }
-
-TEST(TensorHelperTest, MergeIndices) {
-  TensorIndices indices1({2, 3});
-  TensorIndices indices2({1, 2});
-
-  EXPECT_TRUE(TensorHelper::merge_indices(indices1, indices2) ==
-              TensorIndices({2, 3, 1, 2}));
-}

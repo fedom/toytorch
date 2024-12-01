@@ -59,28 +59,21 @@ Tensor matmul_1d_md(const Tensor& lhs, const Tensor& rhs) {
     throw ExceptionTensorShapeIncompatible();
   }
 
-  int batch_shape_size = rhs.dim() - 2;
-  TensorShape batch_shape(rhs.shape().begin(), rhs.shape().end() - 2);
-
-  TensorIndices batch_indices(batch_shape.size(), 0);
-
-  TensorShape result_shape = batch_shape;
-  result_shape.push_back(col);
-
+  TensorShape result_shape = rhs.shape().remove_copy(-2);
   Tensor result(result_shape);
 
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker result_walker(result_shape, result_indices);
+
   do {
+    float sum = 0;
 
-    for (int i = 0; i < col; i++) {
-      float v = 0;
-      for (int j = 0; j < row; j++) {
-        v +=
-            lhs[j] * rhs.at(TensorHelper::merge_indices(batch_indices, {j, i}));
-      }
-      result.at(TensorHelper::merge_indices(batch_indices, {i})) = v;
+    auto&& [left, right] = result_indices.split2(-1);
+    for (int i = 0; i < row; i++) {
+      sum += lhs.at_raw(i) * rhs.at(left.push_back_copy(i).concat(right));
     }
-
-  } while (TensorHelper::increment_indices(batch_indices, batch_shape));
+    result.at(result_indices) = sum;
+  } while (result_walker.step());
 
   return result;
 }
@@ -88,34 +81,28 @@ Tensor matmul_1d_md(const Tensor& lhs, const Tensor& rhs) {
 Tensor matmul_md_1d(const Tensor& lhs, const Tensor& rhs) {
   assert(lhs.dim() > 1 && rhs.dim() == 1);
 
-  int col = lhs.shape()[lhs.dim() - 1];
-  int row = lhs.shape()[lhs.dim() - 2];
+  int col = lhs.shape()[-1];
+  int row = lhs.shape()[-2];
 
   if (col != rhs.shape()[0]) {
     throw ExceptionTensorShapeIncompatible();
   }
 
-  int batch_shape_size = lhs.dim() - 2;
-  TensorShape batch_shape(lhs.shape().begin(), lhs.shape().end() - 2);
-  TensorIndices batch_indices(batch_shape.size(), 0);
-
-  TensorShape result_shape = batch_shape;
-  result_shape.push_back(row);
-
+  TensorShape result_shape = lhs.shape().remove_copy(-1);
   Tensor result(result_shape);
+  TensorIndices result_indices = result.get_indices();
+
+  TensorIndicesWalker result_walker(result_shape, result_indices);
 
   do {
+    float sum = 0;
 
-    for (int i = 0; i < row; i++) {
-      float v = 0;
-      for (int j = 0; j < col; j++) {
-        v +=
-            lhs.at(TensorHelper::merge_indices(batch_indices, {i, j})) * rhs[j];
-      }
-      result.at(TensorHelper::merge_indices(batch_indices, {i})) = v;
+    for (int i = 0; i < col; i++) {
+      sum += rhs.at_raw(i) * lhs.at(result_indices.push_back_copy(i));
     }
+    result.at(result_indices) = sum;
 
-  } while (TensorHelper::increment_indices(batch_indices, batch_shape));
+  } while (result_walker.step());
 
   return result;
 }
@@ -133,41 +120,39 @@ Tensor matmul_md(const Tensor& lhs, const Tensor& rhs) {
   }
 
   // Tensor copy is a shallow copy. The copy shares the raw data, so we can copy
-  // original tensor and modify there shape and stride for calculation.
-  Tensor broadcasted_tensor_a(lhs);
-  Tensor broadcasted_tensor_b(rhs);
+  // original tensor and modify their shape and stride for calculation.
+  Tensor broadcasted_tensor_a(lhs.meta_copy());
+  Tensor broadcasted_tensor_b(rhs.meta_copy());
 
   TensorHelper::broadcast_tensors(broadcasted_tensor_a, broadcasted_tensor_b,
                                   2);
 
-  TensorShape result_batch_shape(broadcasted_tensor_a.shape().begin(),
-                                 broadcasted_tensor_a.shape().end() - 2);
-  TensorShape result_shape(result_batch_shape);
-  result_shape.push_back(row_a);
-  result_shape.push_back(col_b);
-
-  TensorIndices result_batch_indices(result_batch_shape.size(), 0);
+  TensorShape result_shape =
+      broadcasted_tensor_a.shape().remove_copy(-1).push_back(rhs.shape()[-1]);
   Tensor result(result_shape);
 
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker result_walker(result_shape, result_indices);
+
   do {
-    for (int i = 0; i < row_a; i++) {
-      for (int j = 0; j < col_b; j++) {
-
-        assert(col_a == row_b);
-        float sum = 0;
-        for (int k = 0; k < col_a; k++) {
-          sum += broadcasted_tensor_a.at(TensorHelper::merge_indices(
-                     result_batch_indices, {i, k})) *
-                 broadcasted_tensor_b.at(
-                     TensorHelper::merge_indices(result_batch_indices, {k, j}));
-        }
-
-        result.at(TensorHelper::merge_indices(result_batch_indices, {i, j})) =
-            sum;
-      }
+    // lhs shape :  [A, B , C, m, k]
+    // rhs shape :  [A, B , C, k, n]
+    // result shape:[A, B , C, m, n]
+    //
+    // result shape split3: [A, B ,C , m, n] -> [A, B, C], [m], [n]
+    // lhs: [A, B, C] + [m] + k
+    // rhs: [A, B, C] + k + [n]
+    auto&& [left, mid, right] = result_indices.split3(-2);
+    float sum = 0;
+    for (int i = 0; i < col_a; i++) {
+      // Note here, for indices operation, we use the copy version to return a new copy so that
+      // that don't interfere with the other operand's indices
+      sum += broadcasted_tensor_a.at(left.concat_copy(mid).push_back(i)) *
+             broadcasted_tensor_b.at(left.push_back_copy(i).concat(right));
     }
-  } while (TensorHelper::increment_indices(result_batch_indices,
-                                           result_batch_shape));
+    result.at(result_indices) = sum;
+
+  } while (result_walker.step());
 
   return result;
 }
@@ -235,5 +220,4 @@ Tensor matmul(const Tensor& lhs, const Tensor& rhs) {
   return result;
 }
 
-
-} // namespace toytorch
+}  // namespace toytorch

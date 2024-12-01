@@ -8,6 +8,16 @@
 
 using namespace toytorch;
 
+
+TEST(TensorTest, EmptyShape) {
+  Tensor t(TensorShape({}));
+
+  t[0] = 3;
+
+  EXPECT_TRUE(t.raw_data_size() == 1);
+  EXPECT_TRUE(t.numel() == 1);
+}
+
 TEST(TensorTest, CreateScalar) {
   Tensor tensor(3);
 
@@ -146,6 +156,8 @@ TEST(TensorTest, SumNotKeepDimScalar) {
   Tensor t({6}, {1,2,3,4,5,6});
 
   Tensor a = t.sum(0);
+  a.print();
+  a.print_shape();
   EXPECT_TRUE(t.sum(0) == Tensor(21));
   EXPECT_TRUE(t.sum(0).is_scalar());
 }

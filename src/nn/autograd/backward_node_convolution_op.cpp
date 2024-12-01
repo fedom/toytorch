@@ -37,27 +37,18 @@ Tensor dilate2d(const Tensor& input, int hdilation, int wdilation) {
   result_shape[size - 1] = (result_shape[size - 1] - 1) * wdilation + 1;
 
   Tensor result(result_shape);
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker result_walker(result_shape, result_indices);
+  result_walker.set_dim_stride(-1, wdilation);
+  result_walker.set_dim_stride(-2, hdilation);
 
-  TensorShape shape_first_part(result_shape.begin(), result_shape.end() - 2);
-  TensorIndices indices_first_part(shape_first_part.size(), 0);
+  TensorIndices input_indices = input.get_indices();
+  TensorIndicesWalker input_walker(input.shape(), input_indices);
 
-  int input_height = input.shape()[size - 2];
-  int input_width = input.shape()[size - 1];
-
-  do {
-    for (int i = 0; i < input_height; i++) {
-      for (int j = 0; j < input_width; j++) {
-        TensorIndices read_indices_second_part({i, j});
-        TensorIndices write_indices_second_part({i * hdilation, j * wdilation});
-        TensorIndices read_indices = TensorHelper::merge_indices(
-            indices_first_part, read_indices_second_part);
-        TensorIndices write_indices = TensorHelper::merge_indices(
-            indices_first_part, write_indices_second_part);
-        result.at(write_indices) = input.at(read_indices);
-      }
-    }
-  } while (
-      TensorHelper::increment_indices(indices_first_part, shape_first_part));
+  do
+  {
+    result.at(result_indices) = input.at(input_indices);
+  } while (input_walker.step() && result_walker.step());
 
   // This is not intended to support backpropagation for now
   BACKWARD_NOT_IMPLEMENTED_YET("dilate2d", input);
