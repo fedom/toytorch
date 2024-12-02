@@ -75,6 +75,7 @@ class Conv2dBackwardTest : public testing::Test {
 
   void run_forward_backward() {
     Tensor result = conv_.forward(input_).sum();
+
     result.backward();
   }
 
@@ -161,7 +162,7 @@ TEST_F(Conv2dBackwardTest, Backward) {
 TEST_F(Conv2dBackwardTest, BackwardWithPadding_2_2) {
 
   // std::cout << debug::print_backward_graph(result) << std::endl;
-  conv_.debug_set_padding({2, 2});
+  conv_.debug_set_padding({2, 2, 2, 2});
   run_forward_backward();
 
   EXPECT_TRUE(conv_.weights().grad()->strict_allclose(
@@ -538,7 +539,7 @@ TEST_F(Conv2dBackwardTest, BackwardFilerWithStrides_3_3) {
 
 TEST_F(Conv2dBackwardTest, BackwardWithPadding_2_2_Strides_2_3) {
 
-  conv_.debug_set_padding({2, 2});
+  conv_.debug_set_padding({2, 2, 2, 2});
   conv_.debug_set_stride({2, 3});
   run_forward_backward();
 

@@ -18,7 +18,7 @@ namespace toytorch {
  */
 Tensor conv2d(const Tensor& input, const Tensor& weight,
               const std::array<int, 2>& stride = {1, 1},
-              const std::array<int, 2>& padding = {0});
+              const std::array<int, 4>& padding = {0, 0, 0, 0});
 
 
 // We provide a pad() operation which can be used in conv2d.

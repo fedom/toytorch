@@ -8,7 +8,7 @@ class Conv2d : public Module {
  public:
   Conv2d(int in_channels, int out_channels,
          const std::array<int, 2>& kernel_size,
-         const std::array<int, 2>& stride = {1,1}, const std::array<int, 2>& padding = {0},
+         const std::array<int, 2>& stride = {1,1}, const std::array<int, 4>& padding = {0,0,0,0},
          bool bias = true);
 
   Tensor forward(const Tensor& input) const override;
@@ -20,12 +20,12 @@ class Conv2d : public Module {
   void debug_set_weights(const Tensor& weights) { weights_ = weights; }
   void debug_set_bias(const Tensor& bias) { bias_ = bias; }
   void debug_set_stride(const std::array<int, 2> &stride) {stride_ = stride;}
-  void debug_set_padding(const std::array<int, 2> &padding) {padding_ = padding;}
+  void debug_set_padding(const std::array<int, 4> &padding) {padding_ = padding;}
 
  private:
   Tensor weights_;
   Tensor bias_;
-  std::array<int, 2> padding_;
+  std::array<int, 4> padding_;
   std::array<int, 2> stride_;
 };
 

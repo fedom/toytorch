@@ -106,7 +106,7 @@ TEST_F(Conv2dTest, forward) {
 
 TEST_F(Conv2dTest, forwardWithPadding_2_2) {
 
-  conv_.debug_set_padding({2, 2});
+  conv_.debug_set_padding({2, 2, 2, 2});
   Tensor result = conv_.forward(input_);
   // result.print();
 
@@ -281,7 +281,7 @@ TEST_F(Conv2dTest, forwardWithStrides_3_3) {
 
 TEST_F(Conv2dTest, forwardWithPadding_2_2_Strides_2_3) {
 
-  conv_.debug_set_padding({2, 2});
+  conv_.debug_set_padding({2, 2, 2, 2});
   conv_.debug_set_stride({2, 3});
   Tensor result = conv_.forward(input_);
   EXPECT_TRUE(result.shape() == TensorShape({batch_size, out_channels, 4, 3}));

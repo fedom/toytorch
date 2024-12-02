@@ -4,6 +4,7 @@
 
 using namespace toytorch;
 
+// Also see unit/nn/modules/conv2d.cpp
 TEST(ConvolutionTest, conv2d) {
 
   Tensor input = ones({5, 3, 8, 10});

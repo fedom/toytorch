@@ -9,7 +9,7 @@ namespace toytorch {
 Conv2d::Conv2d(int in_channels, int out_channels,
                const std::array<int, 2>& kernel_size,
                const std::array<int, 2>& stride,
-               const std::array<int, 2>& padding, bool bias)
+               const std::array<int, 4>& padding, bool bias)
     : padding_(padding), stride_(stride) {
 
   weights_ =

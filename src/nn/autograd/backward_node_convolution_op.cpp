@@ -17,7 +17,7 @@ Tensor full_conv2d(const Tensor& input, const Tensor& weight) {
   int weight_h = weight.dim(-2);
   int weight_w = weight.dim(-1);
 
-  return conv2d(input, weight, {1, 1}, {weight_h - 1, weight_w - 1});
+  return conv2d(input, weight, {1, 1}, {weight_h - 1, weight_h - 1, weight_w - 1, weight_w - 1});
 }
 
 Tensor dilate2d(const Tensor& input, int hdilation, int wdilation) {

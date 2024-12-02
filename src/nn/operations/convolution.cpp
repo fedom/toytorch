@@ -13,7 +13,7 @@ namespace toytorch {
 // https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
 Tensor conv2d(const Tensor& input, const Tensor& weight,
               const std::array<int, 2>& stride,
-              const std::array<int, 2>& padding) {
+              const std::array<int, 4>& padding) {
 
   assert(input.dim() == 4);
   assert(weight.dim() == 4);
@@ -28,8 +28,10 @@ Tensor conv2d(const Tensor& input, const Tensor& weight,
   int weight_height = weight.shape()[2];
   int weight_width = weight.shape()[3];
 
-  int height_padding = padding[0];
-  int width_padding = padding[1];
+  int top_padding = padding[0];
+  int bottom_padding = padding[1];
+  int left_padding = padding[2];
+  int right_padding = padding[3];
 
   int height_stride = stride[0];
   int width_stride = stride[1];
@@ -44,22 +46,22 @@ Tensor conv2d(const Tensor& input, const Tensor& weight,
         "height_stride or width_stride must greater than 0");
   }
 
-  if (weight_height > input_height + 2 * height_padding) {
+  if (weight_height > input_height + top_padding + bottom_padding) {
     throw ExceptionInvalidArgument(
-        "weight_height > input_height + 2 * height_padding");
+        "weight_height > input_height + top_padding + bottom_padding");
   }
-  if (weight_width > input_width + 2 * width_padding) {
+  if (weight_width > input_width + left_padding + right_padding) {
     throw ExceptionInvalidArgument(
-        "weight_width > input_width + 2 * width_padding");
+        "weight_width > input_width + left_padding + right_padding");
   }
 
   Tensor new_input = input;
-  if (height_padding != 0 || width_padding != 0) {
+  if (top_padding != 0 || bottom_padding != 0 || left_padding != 0 || right_padding != 0) {
 
     // We put this outside the below lambda to make use of pad2d's auto backward node
     // to handle this padding. So we don't need to implement it again in the conv2d's
     // backward node.
-    new_input = pad2d(input, height_padding, height_padding, width_padding, width_padding);
+    new_input = pad2d(input, top_padding, bottom_padding, left_padding, right_padding);
   }
 
   // new Input shape [N, IN_CH, H, W]
@@ -102,9 +104,6 @@ Tensor conv2d(const Tensor& input, const Tensor& weight,
 
     return r;
   }();
-
-  // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  // BACKWARD_NOT_IMPLEMENTED_YET("conv2d", input);
 
   UPDATE_BACKWARD_GRAPH_2(result, Conv2dBackward, height_stride, width_stride,
                           new_input_copy, weight);
