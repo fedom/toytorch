@@ -25,6 +25,13 @@ class AbsBackward : public UnaryNode {
   Tensor calculate_grad(Tensor grad, Tensor input) override;
 };
 
+class BernoulliBackward : public UnaryNode {
+ public:
+  DEFINE_NODE_NAME_AND_ID(BernoulliBackward)
+
+  Tensor calculate_grad(Tensor grad, Tensor input) override;
+};
+
 class SumBackward : public UnaryNode {
  public:
   DEFINE_NODE_NAME_AND_ID(SumBackward)
@@ -51,6 +58,19 @@ class Pad2dBackward : public UnaryNode {
  private:
   int top_;
   int bottom_;
+  int left_;
+  int right_;
+};
+
+class Pad1dBackward : public UnaryNode {
+ public:
+  DEFINE_NODE_NAME_AND_ID(Pad1dBackward)
+
+  Pad1dBackward(int left, int right) : left_(left), right_(right) {}
+
+  Tensor calculate_grad(Tensor grad, Tensor input) override;
+
+ private:
   int left_;
   int right_;
 };

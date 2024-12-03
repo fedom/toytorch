@@ -32,6 +32,11 @@ float get_sign(float a) {
   return 0;
 }
 
+float get_bernoulli(float p) {
+  BernoulliRNGenerator bng(p);
+  return bng();
+}
+
 std::function<float(float, float)> TensorHelper::binary_operations[] = {
     std::plus<float>(),        // EWBOP_ADD
     std::minus<float>(),       // EWBOP_SUB
@@ -50,6 +55,7 @@ std::function<float(float)>
         std::negate<float>(),  // EWUOP_NEG
         std::fabsf,            // EWUOP_ABS
         get_sign,              // EWUOP_SIGN
+        get_bernoulli          //EWUOP_BERN
 
 };
 

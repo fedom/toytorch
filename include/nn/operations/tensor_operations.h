@@ -4,7 +4,6 @@
 
 namespace toytorch {
 
-
 // Ternary ops
 Tensor where(const Tensor& condition, const Tensor& input, const Tensor& other);
 
@@ -59,8 +58,21 @@ Tensor unsqueeze(const Tensor& tensor, int dim);
 Tensor reshape(const Tensor& tensor, const TensorShape& shape);
 Tensor unfold(const Tensor& tensor, int dim, int size, int step = 1);
 
+Tensor bernoulli(const Tensor& p);
+
+/**
+ * @brief Similar to pytorch's slice function [:,:,:]
+ * 
+ * @param tensor 
+ * @param dim 
+ * @param start 
+ * @param end End index not included in the result. Pass size() of the dimension if you
+ *  want include the last element
+ * 
+ * @return Tensor 
+ */
 Tensor slice(const Tensor& tensor, int dim, int start, int end);
-Tensor flip(const Tensor& tensor, const std::vector<int> &dims);
+Tensor flip(const Tensor& tensor, const std::vector<int>& dims);
 
 }  // namespace toytorch
 

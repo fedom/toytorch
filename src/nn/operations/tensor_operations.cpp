@@ -104,55 +104,47 @@ Tensor sign(const Tensor& tensor) {
   return result;
 }
 
-Tensor unsqueeze(const Tensor& tensor, int dim) {
-  int ndim = tensor.dim();
-  // valid range is [-ndim - 1, ndim]
-  if (!(dim >= -ndim - 1 && dim <= ndim)) {
-    throw ExceptionInvalidArgument("unsqueeze dim out of valid range");
-  }
+Tensor bernoulli(const Tensor& p) {
+  Tensor result =
+      TensorHelper::elementwise_unary_op(p, TensorHelper::EWUOP_BERN);
 
-  dim = (dim < 0 ? ndim + 1 + dim : dim);
-
-  // since we need to modify the meta data, we need a meta_copy
-  Tensor result(tensor.meta_copy());
-
-  int stride = 1;
-
-  for (int i = dim; i < ndim; i++) {
-    stride *= tensor.shape()[i];
-  }
-
-  result.strides().insert(dim, stride);
-  result.shape().insert(dim, 1);
-
-  // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET("unsqueeze", tensor);
+  UPDATE_BACKWARD_GRAPH(result, AbsBackward, p);
 
   return result;
 }
 
+Tensor unsqueeze(const Tensor& tensor, int dim) {
+
+  Tensor output = [&]() {
+    autograd::GradModeGuard guard(false);
+
+    Tensor result = tensor.meta_copy();
+    result.unsqueeze_(dim);
+
+    return result;
+  }();
+
+  // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
+  BACKWARD_NOT_IMPLEMENTED_YET("unsqueeze", tensor);
+
+  return output;
+}
+
 Tensor squeeze(const Tensor& tensor, int dim) {
 
-  int ndim = tensor.dim();
-  // valid range is [-ndim, ndim)
-  if (!(dim >= -ndim && dim < ndim)) {
-    throw ExceptionInvalidArgument("squeeze dim out of valid range");
-  }
+  Tensor output = [&]() {
+    autograd::GradModeGuard guard(false);
 
-  dim = (dim < 0 ? ndim + dim : dim);
-  if (tensor.shape()[dim] != 1) {
-    throw ExceptionInvalidArgument("squeeze dim shape not 1");
-  }
+    Tensor result = tensor.meta_copy();
+    result.squeeze_(dim);
 
-  Tensor result(tensor.meta_copy());
-
-  result.shape().remove(dim);
-  result.strides().remove(dim);
+    return result;
+  }();
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
   BACKWARD_NOT_IMPLEMENTED_YET("squeeze", tensor);
 
-  return result;
+  return output;
 }
 
 // https://pytorch.org/docs/stable/generated/torch.nn.Unfold.html#torch.nn.Unfold
@@ -228,10 +220,10 @@ Tensor cat(const std::vector<Tensor>& tensors, int dim) {
     TensorIndices tensor_indices = tensor.get_indices();
     TensorIndicesWalker tensor_walker(tensor.shape(), tensor_indices);
 
-    result_walker.narrow_to_index_range(dim, next_start_index, tensor.shape()[dim]);
+    result_walker.narrow_to_index_range(dim, next_start_index,
+                                        tensor.shape()[dim]);
     next_start_index += tensor.shape()[dim];
-    do
-    {
+    do {
       result.at(result_indices) = tensor.at(tensor_indices);
       result_walker.step();
 
@@ -322,7 +314,7 @@ Tensor select(const Tensor& tensor, int axis, int index,
   } else {
     result_shape.remove(axis);
   }
-  
+
   Tensor result(result_shape);
 
   TensorIndices read_indices = tensor.get_indices();
@@ -463,7 +455,7 @@ Tensor slice(const Tensor& tensor, int dim, int start, int end) {
   result.set_offset(offset + result.offset());
 
   // TODO(Leo): Add UPDATE_BACKWARD_GRAPH(...)
-  BACKWARD_NOT_IMPLEMENTED_YET("transpose", tensor);
+  BACKWARD_NOT_IMPLEMENTED_YET("slice", tensor);
 
   return result;
 }
@@ -479,14 +471,13 @@ Tensor flip(const Tensor& input, const std::vector<int>& dims) {
 
   for (auto dim : dims) {
     dim = normalize_dim(input, dim);
-    
+
     for (int i = 0; i < input.shape()[dim] / 2; i++) {
       result_walker.narrow_to_index(dim, i);
-      do
-      {
-        float &a = result.at(result_indices);
+      do {
+        float& a = result.at(result_indices);
         result_indices[dim] = result.shape()[dim] - 1 - i;
-        float &b = result.at(result_indices);
+        float& b = result.at(result_indices);
         result_indices[dim] = i;
         std::swap(a, b);
       } while (result_walker.step());

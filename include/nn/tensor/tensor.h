@@ -54,8 +54,6 @@ class Tensor {
   inline int offset() const {return impl_->offset();}
   inline void set_offset(int offset) {impl_->set_offset(offset);}
 
-
-
   inline int dim() const { return impl_->dim(); }
   inline int dim(int index) const {return impl_->dim(index);}
   inline size_t numel() const { return impl_->numel(); }
@@ -109,12 +107,20 @@ class Tensor {
     return impl_->strict_allclose(*other.impl_, rtol, atol, equal_nan);
   }
 
-  void add_(const Tensor &other);
-  void sub_(const Tensor &other);
-  void mul_(const Tensor &other);
-  void div_(const Tensor &other);
+  Tensor& add_(const Tensor &other);
+  Tensor& sub_(const Tensor &other);
+  Tensor& mul_(const Tensor &other);
+  Tensor& div_(const Tensor &other);
+  Tensor& bernoulli_(float p);
+  Tensor& squeeze_(int dim);
+  Tensor& unsqueeze_(int dim); 
 
   // operation shortcut
+  Tensor add(const Tensor &other) const;
+  Tensor sub(const Tensor &other) const;
+  Tensor mul(const Tensor &other) const;
+  Tensor div(const Tensor &other) const;
+
   Tensor squeeze(int dim) const;
   Tensor unsqueeze(int dim) const;  
   Tensor unfold(int dim, int size, int step = 1) const;  

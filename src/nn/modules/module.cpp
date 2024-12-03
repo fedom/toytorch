@@ -28,4 +28,19 @@ std::vector<Tensor> Module::parameters(bool recursive) const {
   return result;
 }
 
+std::vector<std::shared_ptr<Module>> Module::modules(bool recursive) const {
+  std::vector<std::shared_ptr<Module>> modules;
+
+  for(const auto& item : modules_) {
+    modules.push_back(item.second);
+
+    if (recursive) {
+      auto nest_modules = item.second->modules(recursive);
+      modules.insert(modules.end(), nest_modules.begin(), nest_modules.end());
+    }
+  }
+
+  return modules;
+}
+
 }  // namespace toytorch

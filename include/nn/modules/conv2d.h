@@ -8,7 +8,7 @@ class Conv2d : public Module {
  public:
   Conv2d(int in_channels, int out_channels,
          const std::array<int, 2>& kernel_size,
-         const std::array<int, 2>& stride = {1,1}, const std::array<int, 4>& padding = {0,0,0,0},
+         const std::array<int, 2>& stride = {1,1}, const std::array<int, 4>& padding = {0},
          bool bias = true);
 
   Tensor forward(const Tensor& input) const override;

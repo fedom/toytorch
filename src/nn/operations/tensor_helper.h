@@ -49,6 +49,7 @@ class TensorHelper {
     EWUOP_NEG,
     EWUOP_ABS,
     EWUOP_SIGN,
+    EWUOP_BERN,
     EWUOP_NUM_OPERATIONS
   };
 

@@ -22,6 +22,22 @@ class Module {
   // Recursively get all the parameters in this module and submodules
   std::vector<Tensor> parameters(bool recursive = true) const;
 
+  std::vector<std::shared_ptr<Module>> modules(bool recursive = true) const;
+
+  void train(bool training = true) {
+    training_ = training;
+    for (auto &item : modules_) {
+      item.second->train(training);
+    }
+  }
+
+  void eval() {
+    training_ = false;
+    for (auto &item : modules_) {
+      item.second->eval();
+    }
+  }
+
   // Register a submodule
   template <typename ModuleType>
   std::shared_ptr<ModuleType> register_module(
@@ -37,6 +53,7 @@ class Module {
  protected:
   std::unordered_map<std::string, std::shared_ptr<Module>> modules_;
   std::unordered_map<std::string, Tensor> parameters_;
+  bool training_;
 };
 
 }  // namespace toytorch

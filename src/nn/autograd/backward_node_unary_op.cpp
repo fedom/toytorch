@@ -9,14 +9,16 @@ Tensor ExpBackward::calculate_grad(Tensor grad, Tensor input) {
 }
 
 Tensor NegBackward::calculate_grad(Tensor grad, Tensor input) {
-  // return ll::mul(grad, Tensor(input.shape(), 1));
   return neg(grad);
 }
 
 Tensor AbsBackward::calculate_grad(Tensor grad, Tensor input) {
-  // return ll::mul(grad, Tensor(input.shape(), 1));
-  // TODO(Leo): add implementation
-  return Tensor();
+  return grad * sign(input);
+}
+
+Tensor BernoulliBackward::calculate_grad(Tensor grad, Tensor input) {
+  // Straight-Through Estimator (STE)
+  return grad;
 }
 
 Tensor SumBackward::calculate_grad(Tensor grad, Tensor input) {
@@ -39,6 +41,14 @@ Tensor Pad2dBackward::calculate_grad(Tensor grad, Tensor input) {
 
   return grad.slice(height_dim, height_slice_start, height_slice_end)
       .slice(width_dim, width_slice_start, width_slice_end);
+}
+
+Tensor Pad1dBackward::calculate_grad(Tensor grad, Tensor input) {
+
+  int slice_start = left_;
+  int slice_end = grad.dim(-1) - right_;
+
+  return grad.slice(-1, slice_start, slice_end);
 }
 
 }  // namespace toytorch::autograd

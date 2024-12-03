@@ -7,6 +7,7 @@
 #include "nn/operations/tensor_helper.h"
 #include "nn/operations/tensor_operations.h"
 #include "nn/tensor/tensor_creator.h"
+#include <iostream>
 
 namespace toytorch::autograd {
 
@@ -54,6 +55,49 @@ Tensor dilate2d(const Tensor& input, int hdilation, int wdilation) {
   BACKWARD_NOT_IMPLEMENTED_YET("dilate2d", input);
 
   return result;
+}
+
+// Dilate1d is just copied from dilate2d. There two operations can be merged
+// into a general one.
+Tensor dilate1d(const Tensor& input, int dilation) {
+  if (input.dim() < 1) {
+    throw ExceptionInvalidArgument("dilate1d() input dim can't be less than 1");
+  }
+
+  // We temporarily set a limit to dilation range
+  if (dilation <= 0 || dilation > 10) {
+    throw ExceptionInvalidArgument(
+        "dilate1d() dilation is out of valid range [1, 10]");
+  }
+
+  TensorShape result_shape(input.shape());
+  int size = result_shape.size();
+  result_shape[-1] = (result_shape[-1] - 1) * dilation + 1;
+
+  Tensor result(result_shape);
+  TensorIndices result_indices = result.get_indices();
+  TensorIndicesWalker result_walker(result_shape, result_indices);
+  result_walker.set_dim_stride(-1, dilation);
+
+  TensorIndices input_indices = input.get_indices();
+  TensorIndicesWalker input_walker(input.shape(), input_indices);
+
+  do
+  {
+    result.at(result_indices) = input.at(input_indices);
+  } while (input_walker.step() && result_walker.step());
+
+  // This is not intended to support backpropagation for now
+  BACKWARD_NOT_IMPLEMENTED_YET("dilate1d", input);
+
+  return result;
+}
+
+Tensor full_conv1d(const Tensor& input, const Tensor& weight) {
+
+  int weight_len = weight.dim(-1);
+
+  return conv1d(input, weight, 1, {weight_len - 1, weight_len - 1});
 }
 }  // namespace
 
@@ -173,4 +217,80 @@ Tensor Conv2dBackward::calculate_rhs_grad(Tensor grad, Tensor input,
 
   return result;
 }
+
+Tensor Conv1dBackward::calculate_lhs_grad(Tensor grad, Tensor input,
+                                          Tensor kernel) {
+
+  if (stride_ > 1) {
+    grad = dilate1d(grad, stride_);
+  }
+
+  Tensor fliped_kernel = flip(kernel, {-1});
+
+  // grad shape : [N, OUT, L1]
+  // kernel shape: [OUT, IN, L2]
+  // input(result) shape: [N, IN, L3]
+  // for full_conv1d(grad, flip(kernel)) we need to adjust the shape
+  // - kernel [OUT, IN, L2] -> [IN, OUT, L2]
+  //
+  // Then full_conv1d([N, OUT, L1], [IN, OUT, L2]) -> [N, IN, L3]
+  fliped_kernel = fliped_kernel.transpose(0, 1);
+
+  Tensor result = full_conv1d(grad, fliped_kernel);
+
+  int input_grad_len = result.dim(-1);
+
+  if (result.dim(-1) < input.dim(-1)) {
+
+    // TODO(Leo): confirm this is the right way to adjust
+    result = pad1d(result, 0,input.dim(-1) - result.dim(-1));
+  }
+
+  return result;
+}
+
+Tensor Conv1dBackward::calculate_rhs_grad(Tensor grad, Tensor input,
+                                          Tensor kernel) {
+
+  if (stride_ > 1) {
+    // In this case, we need to dilate the grad. Refer to
+    // https://deeplearning.cs.cmu.edu/F21/document/recitation/Recitation5/CNN_Backprop_Recitation_5_F21.pdf
+    grad = dilate1d(grad, stride_);
+  }
+
+  // Here we need to adjust the shape in order to use the conv1d().
+  //  - input shape: [N, IN_CH, L]
+  //  - grad shape:  [N, OUT_CH, L1]
+  //
+  // We need to adjust as below:
+  //  - input shape : [N, IN_CH, L] -> [IN_CH, N, L]
+  //  - grad shape :  [N, OUT_CH, L1] -> [OUT_CH, N, L1]
+  //
+  // After invoke conv2d() on them, we get:
+  //  - conv2d(input, grad) -> [IN_CH, OUT_CH, L2]
+  //
+  // Adjust the result's shape as below:
+  // [IN_CH, OUT_CH, L2] -> [OUT_CH, IN_CH, H2, W2]
+  //
+  // That final result match the original kernel's shape.
+  assert(input.dim() == 3);
+  assert(grad.dim() == 3);
+
+  Tensor new_input = input.transpose(0, 1);
+  Tensor new_grad = grad.transpose(0, 1);
+  Tensor result = conv1d(new_input, new_grad);
+
+  int result_len = result.dim(-1);
+
+  int kernel_len = kernel.dim(-1);
+
+  if (result_len > kernel_len) {
+    result = result.slice(-1, 0, kernel_len);
+  }
+
+  result = result.transpose(0, 1);
+
+  return result;
+}
+
 }  // namespace toytorch::autograd

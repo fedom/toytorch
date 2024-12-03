@@ -21,6 +21,19 @@ class Conv2dBackward : public BinaryNode {
   int wstride_;
 };
 
+class Conv1dBackward : public BinaryNode {
+ public:
+  Conv1dBackward(int stride) : stride_(stride) {}
+
+  Tensor calculate_lhs_grad(Tensor grad, Tensor lhs, Tensor rhs) override;
+  Tensor calculate_rhs_grad(Tensor grad, Tensor lhs, Tensor rhs) override;
+
+  DEFINE_NODE_NAME_AND_ID(Conv1dBackward)
+
+ private:
+  int stride_;
+};
+
 }  // namespace toytorch::autograd
 
 #endif  // TOYTORCH_NN_AUTOGRAD_BACKWARD_NODE_CONVOLUTION_OP_H__

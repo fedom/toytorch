@@ -20,9 +20,23 @@ Tensor conv2d(const Tensor& input, const Tensor& weight,
               const std::array<int, 2>& stride = {1, 1},
               const std::array<int, 4>& padding = {0, 0, 0, 0});
 
-
 // We provide a pad() operation which can be used in conv2d.
 Tensor pad2d(const Tensor& tensor, int top, int bottom, int left, int right);
+
+/**
+ * @brief Calculate 2d convolution
+ * 
+ * @param input The input with shape [batch, in_channel, height, width]
+ * @param weight The kernel with shape [out_channel, in_channel, kernel_height, kernel_width]
+ * @param stride
+ * @param padding
+ * @return Tensor 
+ */
+Tensor conv1d(const Tensor& input, const Tensor& weight, int stride = 1,
+              const std::array<int, 2>& padding = {0, 0});
+
+// We provide a pad() operation which can be used in conv1d.
+Tensor pad1d(const Tensor& tensor, int left, int right);
 
 }  // namespace toytorch
 

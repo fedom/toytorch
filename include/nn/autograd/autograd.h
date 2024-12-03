@@ -78,6 +78,16 @@ class GradModeGuard {
     }                                                                         \
   } while (false)
 
+#define SHOULD_NOT_BE_CALLED_WHEN_REQUIRES_GRAD(opname, ...)              \
+  do {                                                                    \
+    if (autograd::grad_enabled &&                                         \
+        autograd::is_either_requires_grad({__VA_ARGS__})) {               \
+      throw ExceptionOpBackwardNotImplemented(                            \
+          std::string(opname) +                                           \
+          " is not supposed to be called on tensors that requires grad"); \
+    }                                                                     \
+  } while (false)
+
 #define BACKWARD_NOT_IMPLEMENTED_YET(opname, ...)             \
   do {                                                        \
     if (autograd::grad_enabled &&                             \

@@ -64,4 +64,5 @@ class NormalRNGenerator : public RNGeneratorBase<T> {
   NormalRNDistrib_t<T> distrib_;
 };
 
+
 #endif  // NN_UTILITY_RANDOM_UTILS_H__
