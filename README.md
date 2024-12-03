@@ -48,13 +48,13 @@ cmake --build build
 ```
 Two binaries will be created:
 ```
-./build/src/linear_regression  // linear regression example provided by pytorch implemented using our toy
+./build/src/regression  // linear regression example provided by pytorch implemented using our toy
 ./build/test/toytorch_test   // unittests if you have built it
 ```
 Run them to check the results.
 
 ## **Example**
-- [linear regression example](./src/linear_regression_example.cpp)
+- [regression](./src/regression.cpp)
 - Backward graph printing example
 
 ```c++

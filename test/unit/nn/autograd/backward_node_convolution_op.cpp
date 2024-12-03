@@ -81,7 +81,7 @@ class Conv2dBackwardTest : public testing::Test {
   }
 
   Tensor input_;
-  Conv2d conv_;
+  nn::Conv2d conv_;
 };
 
 // See unit/nn/modules/conv2d.cpp
@@ -701,7 +701,7 @@ class Conv1dBackwardTest : public testing::Test {
   }
 
   Tensor input_;
-  Conv1d conv_;
+  nn::Conv1d conv_;
 };
 
 // See unit/nn/modules/conv2d.cpp

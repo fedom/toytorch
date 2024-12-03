@@ -1,6 +1,6 @@
 #include "nn/modules/module.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 // Register a parameter
 Tensor& Module::register_parameter(const std::string& name, Tensor tensor) {

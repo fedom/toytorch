@@ -6,7 +6,7 @@
 using namespace toytorch;
 
 TEST(DropoutTest, dropout) {
-  Dropout dropout_layer(0.4);
+  nn::Dropout dropout_layer(0.4);
 
   dropout_layer.train();
 
@@ -19,7 +19,7 @@ TEST(DropoutTest, dropout) {
 }
 
 TEST(DropoutTest, dropout2d) {
-  Dropout2d dropout_layer(0.2);
+  nn::Dropout2d dropout_layer(0.2);
 
   dropout_layer.train();
 

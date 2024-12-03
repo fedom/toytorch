@@ -2,7 +2,7 @@
 #define TOYTORCH_NN_MODULES_CONV2D_H__
 #include "nn/modules/module.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 class Conv2d : public Module {
  public:

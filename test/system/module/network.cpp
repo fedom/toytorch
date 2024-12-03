@@ -312,9 +312,9 @@ tensor([1.2471])
 TEST(AugogradSystemTest, LinearModel) {
 
 
-  Linear fc1(4, 32, "Sigmoid", "fc1");
-  Linear fc2(32, 8, "Relu", "fc2");
-  Linear fc3(8, 1, "Sigmoid", "fc3");
+  nn::Linear fc1(4, 32, "Sigmoid", "fc1");
+  nn::Linear fc2(32, 8, "Relu", "fc2");
+  nn::Linear fc3(8, 1, "Sigmoid", "fc3");
 
   fc1.debug_set_weights(Tensor(
       {4, 32},

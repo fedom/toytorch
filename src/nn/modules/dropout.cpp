@@ -1,7 +1,7 @@
 #include "nn/modules/dropout.h"
 #include "nn/operations/dropout.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 Tensor Dropout::forward(const Tensor& input) const {
   // training is set by user before start training bying calling model.train()

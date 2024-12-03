@@ -5,7 +5,7 @@
 using namespace toytorch;
 
 TEST(LinearTest, forward) {
-  Linear model(64, 16);
+  nn::Linear model(64, 16);
   Tensor input = randn({10, 64});
   Tensor result = model.forward(input);
 

@@ -4,7 +4,7 @@
 #include "nn/tensor/tensor_creator.h"
 #include <iostream>
 
-namespace toytorch {
+namespace toytorch::nn {
 
 Conv2d::Conv2d(int in_channels, int out_channels,
                const std::array<int, 2>& kernel_size,

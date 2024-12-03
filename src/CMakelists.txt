@@ -40,6 +40,6 @@ target_include_directories(${NN_LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${NN_LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 
-set(LINEAR_REGRESSION_EXAMPLE linear_regression)
-add_executable(${LINEAR_REGRESSION_EXAMPLE} ./linear_regression_example.cpp)
-target_link_libraries(${LINEAR_REGRESSION_EXAMPLE} nn_engine)
+set(REGRESSION_EXAMPLE regression)
+add_executable(${REGRESSION_EXAMPLE} ./regression.cpp)
+target_link_libraries(${REGRESSION_EXAMPLE} nn_engine)

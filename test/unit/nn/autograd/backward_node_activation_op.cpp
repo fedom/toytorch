@@ -9,7 +9,7 @@
 using namespace toytorch;
 
 TEST(AugogradTest, SigmoidBackward) {
-  Sigmoid sig;
+  nn::Sigmoid sig;
   Tensor t1({2, 3}, {1, 2, 3, 4, 5, 6}, true);
 
   Tensor t2 = sig.forward(t1);
@@ -27,7 +27,7 @@ TEST(AugogradTest, SigmoidBackward) {
 }
 
 TEST(AugogradTest, ReluBackward) {
-  Relu act;
+  nn::Relu act;
   Tensor t1({2, 3}, {1, -2, 3, -4, 5, -6}, true);
 
   Tensor t2 = act.forward(t1);

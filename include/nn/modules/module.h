@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include "nn/tensor/tensor.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 class Module {
  public:

@@ -3,7 +3,7 @@
 #include "nn/modules/module.h"
 #include "nn/tensor/tensor.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 class Conv1d : public Module {
  public:

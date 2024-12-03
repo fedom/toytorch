@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include "activation.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 #define REGISTER_ACTIVATION(class_name)                 \
   static bool class_name##_registered = []() {          \

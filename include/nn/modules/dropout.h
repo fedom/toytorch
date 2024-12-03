@@ -2,7 +2,7 @@
 #define TOYTORCH_NN_MODULES_DROPOUT_H__
 #include "nn/modules/module.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 class Dropout : public Module {
 public:

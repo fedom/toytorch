@@ -68,7 +68,7 @@ class Conv2dTest : public testing::Test {
   }
 
   Tensor input_;
-  Conv2d conv_;
+  nn::Conv2d conv_;
 };
 
 TEST_F(Conv2dTest, forward) {

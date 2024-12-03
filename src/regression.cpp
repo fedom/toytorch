@@ -55,7 +55,7 @@ int main() {
   auto b_target = toytorch::randn({1}) * 5;
 
   // Define a linear layer to approximate the W_target and b_target
-  auto fc = toytorch::Linear(W_target.shape()[0], 1);
+  auto fc = toytorch::nn::Linear(W_target.shape()[0], 1);
   toytorch::optim::SGD optim(fc.parameters(), .1);
 
   float loss = 0;

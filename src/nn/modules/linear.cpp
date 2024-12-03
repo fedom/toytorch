@@ -5,7 +5,7 @@
 #include <iostream>
 #include <memory>
 
-namespace toytorch {
+namespace toytorch::nn {
 
 Linear::Linear(int num_input, int num_output,
                          const std::string& act_name, const std::string &name)

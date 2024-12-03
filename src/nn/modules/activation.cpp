@@ -7,7 +7,7 @@
 #include "nn/modules/activation_registry.h"
 #include <iostream>
 
-namespace toytorch {
+namespace toytorch::nn {
 
 // y = 1/(1 - e^(-x));
 Tensor Sigmoid::forward(const Tensor& input) const {

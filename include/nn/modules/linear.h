@@ -8,7 +8,7 @@
 #include "nn/modules/module.h"
 #include "nn/tensor/tensor.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 class Linear : public Module {
  public:

@@ -7,7 +7,7 @@ using namespace toytorch;
 TEST(ActivationTest, Sigmoid) {
   Tensor t({2, 3}, {1, 2, 3, 4, 5, 6});
 
-  Sigmoid act;
+  nn::Sigmoid act;
 
   Tensor r = act.forward(t);
   // r.print();

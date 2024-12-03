@@ -4,7 +4,7 @@
 #include "nn/operations/tensor_operations.h"
 #include "nn/tensor/tensor_creator.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 Conv1d::Conv1d(int in_channels, int out_channels, int kernel_size, int stride,
                const std::array<int, 2>& padding, bool bias)

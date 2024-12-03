@@ -2,7 +2,7 @@
 #define SRC_NN_MODULES_ACTIVATION_H__
 #include "module.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 class Activation : public Module {
 

@@ -1,7 +1,7 @@
 #include "nn/modules/activation_registry.h"
 #include "nn/exceptions/exceptions.h"
 
-namespace toytorch {
+namespace toytorch::nn {
 
 ActivationRegistry::ActivationRegistry() {}
 

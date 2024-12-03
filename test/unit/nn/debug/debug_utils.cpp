@@ -4,8 +4,8 @@
 using namespace toytorch;
 
 TEST(DebugUtilsTest, PrintGraph) {
-  Linear fc1(4, 32, "Sigmoid", "fc1");
-  Linear fc2(32, 8, "Relu", "fc2");
+  nn::Linear fc1(4, 32, "Sigmoid", "fc1");
+  nn::Linear fc2(32, 8, "Relu", "fc2");
   Tensor custom_param = randn({4, 8}, true);
 
   Tensor input = rand({5, 4});
