@@ -12,6 +12,9 @@ namespace toytorch::nn {
     return true;                                        \
   }();
 
+#define GET_ACTIVATION(class_name)  \
+  ActivationRegistry::instance().get(class_name)
+
 class ActivationRegistry {
  public:
   static ActivationRegistry& instance();

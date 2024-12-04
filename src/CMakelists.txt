@@ -13,6 +13,7 @@ set(SRC
         ./nn/modules/linear.cpp
         ./nn/modules/activation.cpp
         ./nn/modules/module.cpp
+        ./nn/modules/module_impl.cpp
         ./nn/modules/conv2d.cpp
         ./nn/modules/conv1d.cpp
         ./nn/modules/dropout.cpp

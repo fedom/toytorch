@@ -16,8 +16,9 @@ class Conv1d : public Module {
   const Tensor& bias() const { return bias_; }
 
   // for test only
-  void debug_set_weights(const Tensor& weights) { weights_ = weights; }
-  void debug_set_bias(const Tensor& bias) { bias_ = bias; }
+  void debug_set_weights(const Tensor& weights) { weights_.debug_set_value(weights); }
+  void debug_set_bias(const Tensor& bias) { bias_.debug_set_value(bias); }
+  
   void debug_set_stride(int stride) { stride_ = stride; }
   void debug_set_padding(const std::array<int, 2>& padding) {
     padding_ = padding;

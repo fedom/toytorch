@@ -10,10 +10,15 @@
 #include "nn/operations/convolution.h"
 #include "nn/operations/common_types.h"
 #include "nn/operations/activations.h"
+#include "nn/operations/dropout.h"
+#include "nn/operations/convolution.h"
 
 #include "nn/modules/module.h"
 #include "nn/modules/linear.h"
 #include "nn/modules/activation.h"
+#include "nn/modules/conv2d.h"
+#include "nn/modules/conv1d.h"
+#include "nn/modules/dropout.h"
 #include "nn/modules/activation_registry.h"
 
 #include "nn/debug/debug_utils.h"

@@ -283,4 +283,10 @@ void TensorImpl::print_strides() const {
   std::cout << strides_ << std::endl;
 }
 
+void TensorImpl::debug_set_value(const Tensor &value) {
+    // We use this for debug and test purpose. Tensors involved should only be contiguous tensors.
+    assert(is_contiguous() && value.is_contiguous() && numel() == data_->size());
+    std::copy(value.raw_data(), value.raw_data() + value.numel(), data_->begin());
+  }
+
 }  // namespace toytorch

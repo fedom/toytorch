@@ -31,4 +31,4 @@ std::shared_ptr<Activation> ActivationRegistry::get(
   return act->second;
 }
 
-}  // namespace toytorch
+}  // namespace toytorch::nn

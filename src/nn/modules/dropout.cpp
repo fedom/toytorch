@@ -5,13 +5,13 @@ namespace toytorch::nn {
 
 Tensor Dropout::forward(const Tensor& input) const {
   // training is set by user before start training bying calling model.train()
-  return dropout(input, p_, training_);
+  return dropout(input, p_, is_training());
 }
 
 
 Tensor Dropout2d::forward(const Tensor& input) const {
   // training is set by user before start training bying calling model.train()
-  return dropout2d(input, p_, training_);
+  return dropout2d(input, p_, is_training());
 }
 
 } // namespace

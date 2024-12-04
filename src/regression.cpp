@@ -56,7 +56,7 @@ int main() {
 
   // Define a linear layer to approximate the W_target and b_target
   auto fc = toytorch::nn::Linear(W_target.shape()[0], 1);
-  toytorch::optim::SGD optim(fc.parameters(), .1);
+  toytorch::optim::SGD optim(fc.parameters(), toytorch::optim::SGDOptions(1e-3));
 
   float loss = 0;
   int64_t batch_idx = 0;

@@ -158,6 +158,7 @@ class TensorImpl {
   void print_shape() const;
   void print_strides() const;
   size_t raw_data_size() const {return data_->size();}
+  void debug_set_value(const Tensor &value);
 
  private:
   std::string print_level(int base_index, int layer) const;

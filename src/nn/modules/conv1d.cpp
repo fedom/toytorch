@@ -10,9 +10,11 @@ Conv1d::Conv1d(int in_channels, int out_channels, int kernel_size, int stride,
                const std::array<int, 2>& padding, bool bias)
     : padding_(padding), stride_(stride) {
   weights_ = randn({out_channels, in_channels, kernel_size}, true);
+  register_parameter("weights_", weights_);
 
   if (bias) {
     bias_ = randn({out_channels, 1}, true);
+    register_parameter("bias_", bias);
   }
 }
 

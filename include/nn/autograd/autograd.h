@@ -12,7 +12,7 @@ extern thread_local bool grad_enabled;
 
 class GradModeGuard {
  public:
-  explicit GradModeGuard(bool enable) {
+  explicit GradModeGuard(bool enable = false) {
     prev_mode_ = grad_enabled;
     grad_enabled = enable;
   }

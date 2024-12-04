@@ -2,58 +2,46 @@
 #define SRC_NN_MODULES_MODULE_H__
 #include <unordered_map>
 #include "nn/tensor/tensor.h"
+#include "module_impl.h"
 
 namespace toytorch::nn {
 
 class Module {
  public:
-  Module() {}
-  virtual ~Module() {}
-
-  Module(const Module&) = delete;
-  Module(Module&&) = delete;
-  Module& operator=(const Module&) = delete;
-  Module& operator=(Module&&) = delete;
+  Module() : impl_(std::make_shared<ModuleImpl>()) {}
+  Module(const std::shared_ptr<ModuleImpl> &impl) : impl_(impl) {}
 
   virtual Tensor forward(const Tensor& input) const {
     return input.deep_copy();
   }
 
   // Recursively get all the parameters in this module and submodules
-  std::vector<Tensor> parameters(bool recursive = true) const;
+  std::vector<Tensor> parameters(bool recursive = true) const {return impl_->parameters();}
 
-  std::vector<std::shared_ptr<Module>> modules(bool recursive = true) const;
+  std::vector<Module> modules(bool recursive = true) const;
 
-  void train(bool training = true) {
-    training_ = training;
-    for (auto &item : modules_) {
-      item.second->train(training);
-    }
-  }
 
-  void eval() {
-    training_ = false;
-    for (auto &item : modules_) {
-      item.second->eval();
-    }
-  }
+  void train(bool training = true) {impl_->train();}
+  bool is_training() const {return impl_->is_training();}
+
+  void eval() {impl_->eval();}
 
   // Register a submodule
   template <typename ModuleType>
-  std::shared_ptr<ModuleType> register_module(
-      const std::string& name, std::shared_ptr<ModuleType> module) {
-    // Register a submodule
-    modules_[name] = module;
-    return module;
+  ModuleType register_module(
+      const std::string& name, ModuleType module) {
+        impl_->register_module(name, module.impl());
+        return module;
   }
 
   // Register a parameter
-  Tensor& register_parameter(const std::string& name, Tensor tensor);
+  Tensor& register_parameter(const std::string& name, Tensor tensor) {
+    return impl_->register_parameter(name, tensor);
+  }
 
  protected:
-  std::unordered_map<std::string, std::shared_ptr<Module>> modules_;
-  std::unordered_map<std::string, Tensor> parameters_;
-  bool training_;
+  std::shared_ptr<ModuleImpl> impl() const {return impl_;}
+  std::shared_ptr<ModuleImpl> impl_;
 };
 
 }  // namespace toytorch

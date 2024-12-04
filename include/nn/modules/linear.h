@@ -23,8 +23,8 @@ class Linear : public Module {
   const std::string& get_name() const { return name_; }
 
   // for test only
-  void debug_set_weights(const Tensor &weights) { weights_ = weights; }
-  void debug_set_bias(const Tensor &bias) { bias_ = bias; }
+  void debug_set_weights(const Tensor &weights) { weights_.debug_set_value(weights); }
+  void debug_set_bias(const Tensor &bias) { bias_.debug_set_value(bias); }
 
  private:
   Tensor weights_;

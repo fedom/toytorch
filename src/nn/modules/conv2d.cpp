@@ -1,8 +1,8 @@
 #include "nn/modules/conv2d.h"
+#include <iostream>
 #include "nn/operations/convolution.h"
 #include "nn/operations/tensor_operations.h"
 #include "nn/tensor/tensor_creator.h"
-#include <iostream>
 
 namespace toytorch::nn {
 
@@ -14,8 +14,11 @@ Conv2d::Conv2d(int in_channels, int out_channels,
 
   weights_ =
       randn({out_channels, in_channels, kernel_size[0], kernel_size[1]}, true);
+
+  register_parameter("weights", weights_);
   if (bias) {
     bias_ = randn({out_channels, 1, 1}, true);
+    register_parameter("bias", bias_);
   }
 }
 
@@ -29,4 +32,4 @@ Tensor Conv2d::forward(const Tensor& input) const {
   return result;
 }
 
-}  // namespace toytorch
+}  // namespace toytorch::nn
