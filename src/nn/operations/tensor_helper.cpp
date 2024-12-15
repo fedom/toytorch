@@ -55,8 +55,8 @@ std::function<float(float)>
         std::negate<float>(),  // EWUOP_NEG
         std::fabsf,            // EWUOP_ABS
         get_sign,              // EWUOP_SIGN
-        get_bernoulli          //EWUOP_BERN
-
+        get_bernoulli,          //EWUOP_BERN
+        std::logf             // EWUOP_LOG
 };
 
 std::function<float(float, float, float)>

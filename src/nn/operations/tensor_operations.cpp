@@ -11,10 +11,6 @@
 
 namespace toytorch {
 
-inline int normalize_dim(const Tensor& t, int dim) {
-  return dim < 0 ? (t.dim() + dim) : dim;
-}
-
 using autograd::Edge;
 using autograd::Node;
 
@@ -79,6 +75,15 @@ Tensor exp(const Tensor& tensor) {
   UPDATE_BACKWARD_GRAPH(result, ExpBackward, tensor);
   return result;
 }
+
+Tensor log(const Tensor& tensor) {
+  Tensor result =
+      TensorHelper::elementwise_unary_op(tensor, TensorHelper::EWUOP_LOG);
+
+  UPDATE_BACKWARD_GRAPH(result, LogBackward, tensor);
+  return result;
+}
+
 
 Tensor neg(const Tensor& tensor) {
   Tensor result =
@@ -492,5 +497,12 @@ Tensor flip(const Tensor& input, const std::vector<int>& dims) {
 
   return result;
 }
+
+Tensor max_pool2d(const Tensor &input, const std::array<int, 2> &kernel_size, const std::array<int, 2> &strides) {
+  Tensor result;
+
+  return result;
+}
+
 
 }  // namespace toytorch

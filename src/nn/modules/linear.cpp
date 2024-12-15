@@ -13,10 +13,9 @@ Linear::Linear(int num_input, int num_output, const std::string& act_name,
   UniformRandomGenerator rng(-1.0f / num_input, 1.0f / num_input);
 
   weights_ = Tensor(TensorShape({num_input, num_output}), rng, true);
-  register_parameter("W", weights_);
-
   bias_ = Tensor(TensorShape({1, num_output}), rng, true);
 
+  register_parameter("W", weights_);
   register_parameter("B", bias_);
 }
 

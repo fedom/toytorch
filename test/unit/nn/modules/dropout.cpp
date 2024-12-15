@@ -13,8 +13,8 @@ TEST(DropoutTest, dropout) {
   Tensor input = ones({4, 5});
   Tensor output = dropout_layer.forward(input);
 
-  output.print_shape();
-  output.print();
+  // output.print_shape();
+  // output.print();
 
 }
 
@@ -26,6 +26,6 @@ TEST(DropoutTest, dropout2d) {
   Tensor input = ones({4, 5, 3, 2});
   Tensor output = dropout_layer.forward(input);
 
-  output.print_shape();
-  output.print();
+  // output.print_shape();
+  // output.print();
 }

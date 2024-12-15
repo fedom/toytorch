@@ -11,6 +11,13 @@ class ExpBackward : public UnaryNode {
   Tensor calculate_grad(Tensor grad, Tensor input) override;
 };
 
+class LogBackward : public UnaryNode {
+ public:
+  DEFINE_NODE_NAME_AND_ID(LogBackward)
+
+  Tensor calculate_grad(Tensor grad, Tensor input) override;
+};
+
 class NegBackward : public UnaryNode {
  public:
   DEFINE_NODE_NAME_AND_ID(NegBackward)

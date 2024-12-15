@@ -50,6 +50,7 @@ class TensorHelper {
     EWUOP_ABS,
     EWUOP_SIGN,
     EWUOP_BERN,
+    EWUOP_LOG,
     EWUOP_NUM_OPERATIONS
   };
 

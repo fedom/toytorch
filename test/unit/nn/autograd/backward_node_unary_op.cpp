@@ -41,3 +41,14 @@ TEST(AugogradUnaryTest, Pad2d) {
 
   EXPECT_TRUE(*a.grad() == ones({2, 3, 4}) * 3);
 }
+
+TEST(AugogradUnaryTest, Log) {
+
+  Tensor a = Tensor({2,3}, {1,2,3,4,5,6}, true);
+  Tensor b = log(a);
+
+  Tensor c = b.sum();
+
+  c.backward();
+  EXPECT_TRUE(a.grad()->strict_allclose(Tensor({2,3}, {1., 0.5, 0.3333, 0.25, 0.2, 0.1667}), 1e-6, 1e-4));
+}

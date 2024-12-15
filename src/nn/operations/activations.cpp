@@ -36,5 +36,40 @@ Tensor relu(const Tensor& tensor) {
 
   return result;
 }
+
+
+Tensor softmax(const Tensor& input, int dim) {
+  dim = normalize_dim(input, dim);
+  if (dim < 0 || dim >= input.dim()) {
+    throw ExceptionInvalidArgument("log_softmax dim out of range");
+  }
+
+  Tensor output = [&]() {
+    autograd::GradModeGuard nograd;
+    Tensor input_exp = exp(input);
+    return input_exp / input_exp.sum(dim, true);
+  }();
+
+  UPDATE_BACKWARD_GRAPH_2(output, SoftmaxBackward, dim, output, input);
+
+  return output;
+}
+
+Tensor log_softmax(const Tensor& input, int dim) {
+  dim = normalize_dim(input, dim);
+  if (dim < 0 || dim >= input.dim()) {
+    throw ExceptionInvalidArgument("log_softmax dim out of range");
+  }
+
+  Tensor output = [&]() {
+    autograd::GradModeGuard nograd;
+    Tensor input_exp = exp(input);
+    return input - log(input_exp.sum(dim, true));
+  }();
+
+  UPDATE_BACKWARD_GRAPH_1(output, LogSoftmaxBackward, dim, input);
+
+  return output;
+}
 }
 

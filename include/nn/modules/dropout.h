@@ -6,7 +6,7 @@ namespace toytorch::nn {
 
 class Dropout : public Module {
 public:
-  Dropout(float p) : p_(p) {}
+  Dropout(float p = 0.5) : p_(p) {}
 
   Tensor forward(const Tensor& input) const override;
 
@@ -16,7 +16,7 @@ private:
 
 class Dropout2d : public Module {
 public:
-  Dropout2d(float p) : p_(p) {}
+  Dropout2d(float p = 0.5) : p_(p) {}
 
   Tensor forward(const Tensor& input) const override;
 

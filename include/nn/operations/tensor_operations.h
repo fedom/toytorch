@@ -1,8 +1,14 @@
 #ifndef TOYTORCH_NN_TENSOR_TENSOR_OPERATIONS_H__
 #define TOYTORCH_NN_TENSOR_TENSOR_OPERATIONS_H__
+#include <array>
+#include <vector>
 #include "nn/tensor/tensor.h"
 
 namespace toytorch {
+
+inline int normalize_dim(const Tensor& t, int dim) {
+  return dim < 0 ? (t.dim() + dim) : dim;
+}
 
 // Ternary ops
 Tensor where(const Tensor& condition, const Tensor& input, const Tensor& other);
@@ -33,6 +39,7 @@ Tensor exp(const Tensor& tensor);
 Tensor neg(const Tensor& tensor);
 Tensor abs(const Tensor& tensor);
 Tensor sign(const Tensor& tensor);
+Tensor log(const Tensor& tensor);
 
 // sum() series will return a totally new tensor with its own raw data
 Tensor sum(const Tensor& tensor);
@@ -73,6 +80,11 @@ Tensor bernoulli(const Tensor& p);
  */
 Tensor slice(const Tensor& tensor, int dim, int start, int end);
 Tensor flip(const Tensor& tensor, const std::vector<int>& dims);
+
+Tensor max_pool2d(const Tensor& input, const std::array<int, 2>& kernel_size,
+                  const std::array<int, 2>& strides);
+
+
 
 }  // namespace toytorch
 

@@ -8,6 +8,10 @@ Tensor ExpBackward::calculate_grad(Tensor grad, Tensor input) {
   return mul(grad, input);
 }
 
+Tensor LogBackward::calculate_grad(Tensor grad, Tensor input) {
+  return div(grad, input);
+}
+
 Tensor NegBackward::calculate_grad(Tensor grad, Tensor input) {
   return neg(grad);
 }
